@@ -91,7 +91,7 @@ message SubscribeRequest {
 message SubscribeResponse {
     oneof response {
         Notification update = 1;  // Changed or sampled value for a path.
-        bool sync_response = 3;   // everything sent at least once
+        bool sync_response  = 3;   // everything sent at least once
     }
 }
 
@@ -272,6 +272,7 @@ message Credentials {
 message SubscriptionList {
     repeated Subscription subscription  = 2;
     SubscriptionListMode  mode          = 5;
+    schema.proto.DataType data_type     = 6;
 }
 
 message Subscription {
