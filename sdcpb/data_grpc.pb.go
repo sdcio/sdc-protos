@@ -45,9 +45,12 @@ type DataServerClient interface {
 	// returns a list of difference between a CANDIDATE datastore and its base
 	Diff(ctx context.Context, in *DiffRequest, opts ...grpc.CallOption) (*DiffResponse, error)
 	// subscribes for notification from a MAIN datastore,
-	// the client specified a list of paths it is interested on as well as a
-	// subscription mode and its parameters.
+	// the client specified a list of paths it is interested on as well as
+	// a sample interval.
 	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (DataServer_SubscribeClient, error)
+	// watches a set of paths, returns the values each path point at if the value
+	// changes.
+	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (DataServer_WatchClient, error)
 }
 
 type dataServerClient struct {
@@ -60,7 +63,7 @@ func NewDataServerClient(cc grpc.ClientConnInterface) DataServerClient {
 
 func (c *dataServerClient) GetDataStore(ctx context.Context, in *GetDataStoreRequest, opts ...grpc.CallOption) (*GetDataStoreResponse, error) {
 	out := new(GetDataStoreResponse)
-	err := c.cc.Invoke(ctx, "/data.proto.DataServer/GetDataStore", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/data.DataServer/GetDataStore", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +72,7 @@ func (c *dataServerClient) GetDataStore(ctx context.Context, in *GetDataStoreReq
 
 func (c *dataServerClient) CreateDataStore(ctx context.Context, in *CreateDataStoreRequest, opts ...grpc.CallOption) (*CreateDataStoreResponse, error) {
 	out := new(CreateDataStoreResponse)
-	err := c.cc.Invoke(ctx, "/data.proto.DataServer/CreateDataStore", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/data.DataServer/CreateDataStore", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +81,7 @@ func (c *dataServerClient) CreateDataStore(ctx context.Context, in *CreateDataSt
 
 func (c *dataServerClient) DeleteDataStore(ctx context.Context, in *DeleteDataStoreRequest, opts ...grpc.CallOption) (*DeleteDataStoreResponse, error) {
 	out := new(DeleteDataStoreResponse)
-	err := c.cc.Invoke(ctx, "/data.proto.DataServer/DeleteDataStore", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/data.DataServer/DeleteDataStore", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +90,7 @@ func (c *dataServerClient) DeleteDataStore(ctx context.Context, in *DeleteDataSt
 
 func (c *dataServerClient) Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*CommitResponse, error) {
 	out := new(CommitResponse)
-	err := c.cc.Invoke(ctx, "/data.proto.DataServer/Commit", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/data.DataServer/Commit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +99,7 @@ func (c *dataServerClient) Commit(ctx context.Context, in *CommitRequest, opts .
 
 func (c *dataServerClient) Rebase(ctx context.Context, in *RebaseRequest, opts ...grpc.CallOption) (*RebaseResponse, error) {
 	out := new(RebaseResponse)
-	err := c.cc.Invoke(ctx, "/data.proto.DataServer/Rebase", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/data.DataServer/Rebase", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +108,7 @@ func (c *dataServerClient) Rebase(ctx context.Context, in *RebaseRequest, opts .
 
 func (c *dataServerClient) Discard(ctx context.Context, in *DiscardRequest, opts ...grpc.CallOption) (*DiscardResponse, error) {
 	out := new(DiscardResponse)
-	err := c.cc.Invoke(ctx, "/data.proto.DataServer/Discard", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/data.DataServer/Discard", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +116,7 @@ func (c *dataServerClient) Discard(ctx context.Context, in *DiscardRequest, opts
 }
 
 func (c *dataServerClient) GetData(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (DataServer_GetDataClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[0], "/data.proto.DataServer/GetData", opts...)
+	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[0], "/data.DataServer/GetData", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +149,7 @@ func (x *dataServerGetDataClient) Recv() (*GetDataResponse, error) {
 
 func (c *dataServerClient) SetData(ctx context.Context, in *SetDataRequest, opts ...grpc.CallOption) (*SetDataResponse, error) {
 	out := new(SetDataResponse)
-	err := c.cc.Invoke(ctx, "/data.proto.DataServer/SetData", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/data.DataServer/SetData", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +158,7 @@ func (c *dataServerClient) SetData(ctx context.Context, in *SetDataRequest, opts
 
 func (c *dataServerClient) Diff(ctx context.Context, in *DiffRequest, opts ...grpc.CallOption) (*DiffResponse, error) {
 	out := new(DiffResponse)
-	err := c.cc.Invoke(ctx, "/data.proto.DataServer/Diff", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/data.DataServer/Diff", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +166,7 @@ func (c *dataServerClient) Diff(ctx context.Context, in *DiffRequest, opts ...gr
 }
 
 func (c *dataServerClient) Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (DataServer_SubscribeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[1], "/data.proto.DataServer/Subscribe", opts...)
+	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[1], "/data.DataServer/Subscribe", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -188,6 +191,38 @@ type dataServerSubscribeClient struct {
 
 func (x *dataServerSubscribeClient) Recv() (*SubscribeResponse, error) {
 	m := new(SubscribeResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *dataServerClient) Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (DataServer_WatchClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[2], "/data.DataServer/Watch", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dataServerWatchClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DataServer_WatchClient interface {
+	Recv() (*WatchResponse, error)
+	grpc.ClientStream
+}
+
+type dataServerWatchClient struct {
+	grpc.ClientStream
+}
+
+func (x *dataServerWatchClient) Recv() (*WatchResponse, error) {
+	m := new(WatchResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -221,9 +256,12 @@ type DataServerServer interface {
 	// returns a list of difference between a CANDIDATE datastore and its base
 	Diff(context.Context, *DiffRequest) (*DiffResponse, error)
 	// subscribes for notification from a MAIN datastore,
-	// the client specified a list of paths it is interested on as well as a
-	// subscription mode and its parameters.
+	// the client specified a list of paths it is interested on as well as
+	// a sample interval.
 	Subscribe(*SubscribeRequest, DataServer_SubscribeServer) error
+	// watches a set of paths, returns the values each path point at if the value
+	// changes.
+	Watch(*WatchRequest, DataServer_WatchServer) error
 	mustEmbedUnimplementedDataServerServer()
 }
 
@@ -261,6 +299,9 @@ func (UnimplementedDataServerServer) Diff(context.Context, *DiffRequest) (*DiffR
 func (UnimplementedDataServerServer) Subscribe(*SubscribeRequest, DataServer_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
+func (UnimplementedDataServerServer) Watch(*WatchRequest, DataServer_WatchServer) error {
+	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
+}
 func (UnimplementedDataServerServer) mustEmbedUnimplementedDataServerServer() {}
 
 // UnsafeDataServerServer may be embedded to opt out of forward compatibility for this service.
@@ -284,7 +325,7 @@ func _DataServer_GetDataStore_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/data.proto.DataServer/GetDataStore",
+		FullMethod: "/data.DataServer/GetDataStore",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServerServer).GetDataStore(ctx, req.(*GetDataStoreRequest))
@@ -302,7 +343,7 @@ func _DataServer_CreateDataStore_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/data.proto.DataServer/CreateDataStore",
+		FullMethod: "/data.DataServer/CreateDataStore",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServerServer).CreateDataStore(ctx, req.(*CreateDataStoreRequest))
@@ -320,7 +361,7 @@ func _DataServer_DeleteDataStore_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/data.proto.DataServer/DeleteDataStore",
+		FullMethod: "/data.DataServer/DeleteDataStore",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServerServer).DeleteDataStore(ctx, req.(*DeleteDataStoreRequest))
@@ -338,7 +379,7 @@ func _DataServer_Commit_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/data.proto.DataServer/Commit",
+		FullMethod: "/data.DataServer/Commit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServerServer).Commit(ctx, req.(*CommitRequest))
@@ -356,7 +397,7 @@ func _DataServer_Rebase_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/data.proto.DataServer/Rebase",
+		FullMethod: "/data.DataServer/Rebase",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServerServer).Rebase(ctx, req.(*RebaseRequest))
@@ -374,7 +415,7 @@ func _DataServer_Discard_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/data.proto.DataServer/Discard",
+		FullMethod: "/data.DataServer/Discard",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServerServer).Discard(ctx, req.(*DiscardRequest))
@@ -413,7 +454,7 @@ func _DataServer_SetData_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/data.proto.DataServer/SetData",
+		FullMethod: "/data.DataServer/SetData",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServerServer).SetData(ctx, req.(*SetDataRequest))
@@ -431,7 +472,7 @@ func _DataServer_Diff_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/data.proto.DataServer/Diff",
+		FullMethod: "/data.DataServer/Diff",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServerServer).Diff(ctx, req.(*DiffRequest))
@@ -460,11 +501,32 @@ func (x *dataServerSubscribeServer) Send(m *SubscribeResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _DataServer_Watch_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DataServerServer).Watch(m, &dataServerWatchServer{stream})
+}
+
+type DataServer_WatchServer interface {
+	Send(*WatchResponse) error
+	grpc.ServerStream
+}
+
+type dataServerWatchServer struct {
+	grpc.ServerStream
+}
+
+func (x *dataServerWatchServer) Send(m *WatchResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DataServer_ServiceDesc is the grpc.ServiceDesc for DataServer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var DataServer_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "data.proto.DataServer",
+	ServiceName: "data.DataServer",
 	HandlerType: (*DataServerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -509,6 +571,11 @@ var DataServer_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Subscribe",
 			Handler:       _DataServer_Subscribe_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Watch",
+			Handler:       _DataServer_Watch_Handler,
 			ServerStreams: true,
 		},
 	},

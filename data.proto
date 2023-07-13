@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/protobuf/any.proto";
 import "schema.proto";
 
-package data.proto;
+package data;
 
 option go_package = ".;schema_server";
 
@@ -31,17 +31,20 @@ service DataServer {
     // returns a list of difference between a CANDIDATE datastore and its base
     rpc Diff(DiffRequest)                       returns (DiffResponse);
     // subscribes for notification from a MAIN datastore,
-    // the client specified a list of paths it is interested on as well as a
-    // subscription mode and its parameters.
+    // the client specified a list of paths it is interested on as well as 
+    // a sample interval.
     rpc Subscribe(SubscribeRequest)             returns (stream SubscribeResponse);
+    // watches a set of paths, returns the values each path points at if the value
+    // changes.
+    rpc Watch(WatchRequest)                     returns (stream WatchResponse);
 }
 
 // messages
 message GetDataRequest {
-    string                  name                    = 1;
-    DataStore               datastore               = 2;
-    repeated                schema.proto.Path path  = 3;
-    schema.proto.DataType   data_type               = 4;
+    string               name      = 1;
+    DataStore            datastore = 2;
+    repeated schema.Path path      = 3;
+    schema.DataType      data_type = 4;
 }
 message GetDataResponse {
     // list of paths and values
@@ -58,7 +61,7 @@ message SetDataRequest {
     // list of replaces
     repeated Update             replace                 = 11;
     // list of deltes
-    repeated schema.proto.Path  delete                  = 12;
+    repeated schema.Path  delete                  = 12;
 }
 message SetDataResponse {
     // A set of responses specifying the result of the operations specified in
@@ -85,13 +88,13 @@ message DiffResponse {
 
 message SubscribeRequest {
     // datastore name
-    string           name       = 1;
-    SubscriptionList subscribe  = 2;
+    string                name          = 1;
+    repeated Subscription subscription  = 2;
 }
 message SubscribeResponse {
     oneof response {
-        Notification update = 1;  // Changed or sampled value for a path.
-        bool sync_response  = 3;   // everything sent at least once
+        Notification update = 1;
+        bool sync_response  = 3;
     }
 }
 
@@ -106,7 +109,7 @@ message GetDataStoreResponse {
     // list of candidates in this datastore
     repeated DataStore  datastore   = 2;
     // the schema this datastore should comply with
-    schema.proto.Schema schema      = 3;
+    schema.Schema       schema      = 3;
     // south bound interface target of this datastore
     Target              target      = 4;
 }
@@ -117,9 +120,11 @@ message CreateDataStoreRequest {
     // datastore type to be created
     DataStore           datastore   = 2;
     // the schema this datastore should comply with
-    schema.proto.Schema schema      = 3;
+    schema.Schema       schema      = 3;
      // south bound interface target of this datastore
     Target              target      = 4;
+    //
+    Sync                sync = 5;
 }
 message CreateDataStoreResponse {}
 
@@ -162,16 +167,25 @@ message DiscardRequest {
 }
 message DiscardResponse {}
 
+message WatchRequest {
+    string         name = 1;
+    repeated Watch watch = 2;
+}
+
+message WatchResponse {
+    Notification notification = 1;
+}
+
 // sub messages
 message Update {
-    schema.proto.Path path  = 1;
-    TypedValue        value = 2;
+    schema.Path path  = 1;
+    TypedValue  value = 2;
 }
 
 message DiffUpdate {
-    schema.proto.Path path              = 1;
-    TypedValue        main_value        = 2;
-    TypedValue        candidate_value   = 3;
+    schema.Path path              = 1;
+    TypedValue  main_value        = 2;
+    TypedValue  candidate_value   = 3;
 }
 
 message TypedValue {
@@ -195,26 +209,24 @@ message TypedValue {
 }
 
 message UpdateResult {
-  // The operation that was associated with the schema.proto.Path specified.
+  // The operation that was associated with the schema.Path specified.
   enum Operation {
     INVALID = 0;
-    DELETE  = 1; // The result relates to a delete of schema.proto.Path.
-    REPLACE = 2; // The result relates to a replace of schema.proto.Path.
-    UPDATE  = 3; // The result relates to an update of schema.proto.Path.
+    DELETE  = 1; // The result relates to a delete of  schema.Path.
+    REPLACE = 2; // The result relates to a replace of schema.Path.
+    UPDATE  = 3; // The result relates to an update of schema.Path.
   }
-  schema.proto.Path path = 2; // schema.proto.Path associated with the update.
+  schema.Path       path = 2; // schema.Path associated with the update.
   Operation         op   = 4; // Update operation type.
 }
 
 message Notification {
     // Timestamp in nanoseconds since Epoch.
-    int64                                timestamp  = 1;
-    // Prefix used for paths in the message. NOT IN USE
-    schema.proto.Path                    prefix     = 2;
+    int64                timestamp  = 1;
     // Data elements that have changed values.
-    repeated           Update            update     = 4;
+    repeated Update      update     = 4;
     // Data elements that have been deleted.
-    repeated           schema.proto.Path delete     = 5;     
+    repeated schema.Path delete     = 5;     
 }
 
 enum Type {
@@ -233,7 +245,7 @@ message DataStore {
 // is expressed as a set of digits with the precision specifying the
 // number of digits following the decimal point in the digit set.
 message Decimal64 {
-  int64 digits = 1;         // Set of digits.
+  int64  digits = 1;         // Set of digits.
   uint32 precision = 2;     // Number of digits following the decimal point.
 }
 
@@ -268,28 +280,39 @@ message Credentials {
     string token    = 3;
 }
 
-// WIP
-message SubscriptionList {
-    repeated Subscription subscription  = 2;
-    SubscriptionListMode  mode          = 5;
-    schema.proto.DataType data_type     = 6;
+message Sync {
+    bool                validate        = 1;
+    int64               buffer          = 2;
+    int64               write_workers   = 3;
+    repeated GNMISync   gnmi            = 4;
+}
+
+message GNMISync {
+    // sync routing name
+    string name = 1;
+    // paths to subscribe to
+    repeated string path = 2;
+    // mode, on-change, sample, or once
+    SyncMode mode = 3;
+    // encoding
+    string encoding = 4;
+}
+
+enum SyncMode {
+    SM_ON_CHANGE = 0;
+    SM_SAMPLE    = 1;
+    SM_ONCE      = 2;
 }
 
 message Subscription {
-    schema.proto.Path path                = 1;
-    SubscriptionMode  mode                = 2;   
-    uint64            sample_interval     = 3;  
-    bool              suppress_redundant  = 4;
-    uint64            heartbeat_interval  = 5;
-}
-enum SubscriptionMode {
-    TARGET_DEFINED = 0;
-    ON_CHANGE      = 1;
-    SAMPLE         = 2;
+    repeated schema.Path path               = 1;
+    schema.DataType      data_type          = 2;
+    uint64               sample_interval    = 3;
+    bool                 suppress_redundant = 4;
 }
 
-enum SubscriptionListMode {
-    STREAM  = 0;
-    ONCE    = 1;
-    // POLL    = 2;
+message Watch {
+    repeated schema.Path path = 1;
+    schema.DataType      data_type = 2;
+    uint64               heartbeat_interval = 3;
 }

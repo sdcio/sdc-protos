@@ -57,7 +57,7 @@ func NewSchemaServerClient(cc grpc.ClientConnInterface) SchemaServerClient {
 
 func (c *schemaServerClient) GetSchemaDetails(ctx context.Context, in *GetSchemaDetailsRequest, opts ...grpc.CallOption) (*GetSchemaDetailsResponse, error) {
 	out := new(GetSchemaDetailsResponse)
-	err := c.cc.Invoke(ctx, "/schema.proto.SchemaServer/GetSchemaDetails", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/schema.SchemaServer/GetSchemaDetails", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *schemaServerClient) GetSchemaDetails(ctx context.Context, in *GetSchema
 
 func (c *schemaServerClient) ListSchema(ctx context.Context, in *ListSchemaRequest, opts ...grpc.CallOption) (*ListSchemaResponse, error) {
 	out := new(ListSchemaResponse)
-	err := c.cc.Invoke(ctx, "/schema.proto.SchemaServer/ListSchema", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/schema.SchemaServer/ListSchema", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *schemaServerClient) ListSchema(ctx context.Context, in *ListSchemaReque
 
 func (c *schemaServerClient) GetSchema(ctx context.Context, in *GetSchemaRequest, opts ...grpc.CallOption) (*GetSchemaResponse, error) {
 	out := new(GetSchemaResponse)
-	err := c.cc.Invoke(ctx, "/schema.proto.SchemaServer/GetSchema", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/schema.SchemaServer/GetSchema", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (c *schemaServerClient) GetSchema(ctx context.Context, in *GetSchemaRequest
 
 func (c *schemaServerClient) CreateSchema(ctx context.Context, in *CreateSchemaRequest, opts ...grpc.CallOption) (*CreateSchemaResponse, error) {
 	out := new(CreateSchemaResponse)
-	err := c.cc.Invoke(ctx, "/schema.proto.SchemaServer/CreateSchema", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/schema.SchemaServer/CreateSchema", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (c *schemaServerClient) CreateSchema(ctx context.Context, in *CreateSchemaR
 
 func (c *schemaServerClient) ReloadSchema(ctx context.Context, in *ReloadSchemaRequest, opts ...grpc.CallOption) (*ReloadSchemaResponse, error) {
 	out := new(ReloadSchemaResponse)
-	err := c.cc.Invoke(ctx, "/schema.proto.SchemaServer/ReloadSchema", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/schema.SchemaServer/ReloadSchema", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (c *schemaServerClient) ReloadSchema(ctx context.Context, in *ReloadSchemaR
 
 func (c *schemaServerClient) DeleteSchema(ctx context.Context, in *DeleteSchemaRequest, opts ...grpc.CallOption) (*DeleteSchemaResponse, error) {
 	out := new(DeleteSchemaResponse)
-	err := c.cc.Invoke(ctx, "/schema.proto.SchemaServer/DeleteSchema", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/schema.SchemaServer/DeleteSchema", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (c *schemaServerClient) DeleteSchema(ctx context.Context, in *DeleteSchemaR
 }
 
 func (c *schemaServerClient) UploadSchema(ctx context.Context, opts ...grpc.CallOption) (SchemaServer_UploadSchemaClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SchemaServer_ServiceDesc.Streams[0], "/schema.proto.SchemaServer/UploadSchema", opts...)
+	stream, err := c.cc.NewStream(ctx, &SchemaServer_ServiceDesc.Streams[0], "/schema.SchemaServer/UploadSchema", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (x *schemaServerUploadSchemaClient) CloseAndRecv() (*UploadSchemaResponse, 
 
 func (c *schemaServerClient) ToPath(ctx context.Context, in *ToPathRequest, opts ...grpc.CallOption) (*ToPathResponse, error) {
 	out := new(ToPathResponse)
-	err := c.cc.Invoke(ctx, "/schema.proto.SchemaServer/ToPath", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/schema.SchemaServer/ToPath", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (c *schemaServerClient) ToPath(ctx context.Context, in *ToPathRequest, opts
 
 func (c *schemaServerClient) ExpandPath(ctx context.Context, in *ExpandPathRequest, opts ...grpc.CallOption) (*ExpandPathResponse, error) {
 	out := new(ExpandPathResponse)
-	err := c.cc.Invoke(ctx, "/schema.proto.SchemaServer/ExpandPath", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/schema.SchemaServer/ExpandPath", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (c *schemaServerClient) ExpandPath(ctx context.Context, in *ExpandPathReque
 }
 
 func (c *schemaServerClient) GetSchemaElements(ctx context.Context, in *GetSchemaRequest, opts ...grpc.CallOption) (SchemaServer_GetSchemaElementsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SchemaServer_ServiceDesc.Streams[1], "/schema.proto.SchemaServer/GetSchemaElements", opts...)
+	stream, err := c.cc.NewStream(ctx, &SchemaServer_ServiceDesc.Streams[1], "/schema.SchemaServer/GetSchemaElements", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func _SchemaServer_GetSchemaDetails_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/schema.proto.SchemaServer/GetSchemaDetails",
+		FullMethod: "/schema.SchemaServer/GetSchemaDetails",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServerServer).GetSchemaDetails(ctx, req.(*GetSchemaDetailsRequest))
@@ -298,7 +298,7 @@ func _SchemaServer_ListSchema_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/schema.proto.SchemaServer/ListSchema",
+		FullMethod: "/schema.SchemaServer/ListSchema",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServerServer).ListSchema(ctx, req.(*ListSchemaRequest))
@@ -316,7 +316,7 @@ func _SchemaServer_GetSchema_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/schema.proto.SchemaServer/GetSchema",
+		FullMethod: "/schema.SchemaServer/GetSchema",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServerServer).GetSchema(ctx, req.(*GetSchemaRequest))
@@ -334,7 +334,7 @@ func _SchemaServer_CreateSchema_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/schema.proto.SchemaServer/CreateSchema",
+		FullMethod: "/schema.SchemaServer/CreateSchema",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServerServer).CreateSchema(ctx, req.(*CreateSchemaRequest))
@@ -352,7 +352,7 @@ func _SchemaServer_ReloadSchema_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/schema.proto.SchemaServer/ReloadSchema",
+		FullMethod: "/schema.SchemaServer/ReloadSchema",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServerServer).ReloadSchema(ctx, req.(*ReloadSchemaRequest))
@@ -370,7 +370,7 @@ func _SchemaServer_DeleteSchema_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/schema.proto.SchemaServer/DeleteSchema",
+		FullMethod: "/schema.SchemaServer/DeleteSchema",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServerServer).DeleteSchema(ctx, req.(*DeleteSchemaRequest))
@@ -414,7 +414,7 @@ func _SchemaServer_ToPath_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/schema.proto.SchemaServer/ToPath",
+		FullMethod: "/schema.SchemaServer/ToPath",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServerServer).ToPath(ctx, req.(*ToPathRequest))
@@ -432,7 +432,7 @@ func _SchemaServer_ExpandPath_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/schema.proto.SchemaServer/ExpandPath",
+		FullMethod: "/schema.SchemaServer/ExpandPath",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SchemaServerServer).ExpandPath(ctx, req.(*ExpandPathRequest))
@@ -465,7 +465,7 @@ func (x *schemaServerGetSchemaElementsServer) Send(m *GetSchemaResponse) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SchemaServer_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "schema.proto.SchemaServer",
+	ServiceName: "schema.SchemaServer",
 	HandlerType: (*SchemaServerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
