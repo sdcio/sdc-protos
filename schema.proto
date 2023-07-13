@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package schema.proto;
+package schema;
 
 option go_package = ".;schema_server";
 
@@ -116,21 +116,21 @@ message UploadSchemaFile {
 
 message ToPathRequest {
     repeated string path_element = 1;
-    schema.proto.Schema  schema        = 2;
+    Schema          schema       = 2;
 }
 message ToPathResponse {
-    schema.proto.Path path =1;
+    Path path =1;
 }
 
 message ExpandPathRequest {
-    schema.proto.Path       path        = 1;
-    schema.proto.Schema     schema      = 2;
-    DataType                data_type   = 3;
-    bool                    xpath       = 4;
+    Path       path        = 1;
+    Schema     schema      = 2;
+    DataType   data_type   = 3;
+    bool       xpath       = 4;
 }
 message ExpandPathResponse {
-    repeated schema.proto.Path  path  = 1;
-    repeated string             xpath = 2;
+    repeated Path   path  = 1;
+    repeated string xpath = 2;
 }
 
 message Hash {
