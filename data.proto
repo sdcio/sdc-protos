@@ -55,13 +55,17 @@ message SetDataRequest {
     // datastore name
     string                      name                    = 1;
     // datastore type and name
-    DataStore                   datastore              = 2;
+    DataStore                   datastore               = 2;
+    // data owner
+    string                      owner                   = 3;
+    // priority
+    uint32                      priority                = 4;
     // list of updates
     repeated Update             update                  = 10;
     // list of replaces
     repeated Update             replace                 = 11;
     // list of deltes
-    repeated schema.Path  delete                  = 12;
+    repeated schema.Path        delete                  = 12;
 }
 message SetDataResponse {
     // A set of responses specifying the result of the operations specified in
@@ -205,7 +209,18 @@ message TypedValue {
         bytes json_ietf_val = 12;         // JSON-encoded text per RFC7951.
         string ascii_val = 13;            // Arbitrary ASCII text.
         bytes proto_bytes = 14;
+        IntendedValues intended_vals = 15;
     }
+}
+
+message IntendedValues {
+    repeated IntendedValue intended_vals = 1;
+}
+
+message IntendedValue {
+    string      owner    = 1;
+    uint32      priority = 2;
+    TypedValue  typed_val = 3;
 }
 
 message UpdateResult {
@@ -296,6 +311,8 @@ message GNMISync {
     SyncMode mode = 3;
     // encoding
     string encoding = 4;
+    // interval for mode sample or once
+    uint64 interval = 5;
 }
 
 enum SyncMode {
