@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DataServerClient interface {
 	// datastore
+	ListDataStore(ctx context.Context, in *ListDataStoreRequest, opts ...grpc.CallOption) (*ListDataStoreResponse, error)
 	// return a datastore details
 	GetDataStore(ctx context.Context, in *GetDataStoreRequest, opts ...grpc.CallOption) (*GetDataStoreResponse, error)
 	// creates a new datastore, either a MAIN or a CANDIDATE datastore
@@ -59,6 +60,15 @@ type dataServerClient struct {
 
 func NewDataServerClient(cc grpc.ClientConnInterface) DataServerClient {
 	return &dataServerClient{cc}
+}
+
+func (c *dataServerClient) ListDataStore(ctx context.Context, in *ListDataStoreRequest, opts ...grpc.CallOption) (*ListDataStoreResponse, error) {
+	out := new(ListDataStoreResponse)
+	err := c.cc.Invoke(ctx, "/data.DataServer/ListDataStore", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *dataServerClient) GetDataStore(ctx context.Context, in *GetDataStoreRequest, opts ...grpc.CallOption) (*GetDataStoreResponse, error) {
@@ -234,6 +244,7 @@ func (x *dataServerWatchClient) Recv() (*WatchResponse, error) {
 // for forward compatibility
 type DataServerServer interface {
 	// datastore
+	ListDataStore(context.Context, *ListDataStoreRequest) (*ListDataStoreResponse, error)
 	// return a datastore details
 	GetDataStore(context.Context, *GetDataStoreRequest) (*GetDataStoreResponse, error)
 	// creates a new datastore, either a MAIN or a CANDIDATE datastore
@@ -269,6 +280,9 @@ type DataServerServer interface {
 type UnimplementedDataServerServer struct {
 }
 
+func (UnimplementedDataServerServer) ListDataStore(context.Context, *ListDataStoreRequest) (*ListDataStoreResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDataStore not implemented")
+}
 func (UnimplementedDataServerServer) GetDataStore(context.Context, *GetDataStoreRequest) (*GetDataStoreResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDataStore not implemented")
 }
@@ -313,6 +327,24 @@ type UnsafeDataServerServer interface {
 
 func RegisterDataServerServer(s grpc.ServiceRegistrar, srv DataServerServer) {
 	s.RegisterService(&DataServer_ServiceDesc, srv)
+}
+
+func _DataServer_ListDataStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDataStoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServerServer).ListDataStore(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/data.DataServer/ListDataStore",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServerServer).ListDataStore(ctx, req.(*ListDataStoreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _DataServer_GetDataStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -529,6 +561,10 @@ var DataServer_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "data.DataServer",
 	HandlerType: (*DataServerServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListDataStore",
+			Handler:    _DataServer_ListDataStore_Handler,
+		},
 		{
 			MethodName: "GetDataStore",
 			Handler:    _DataServer_GetDataStore_Handler,
