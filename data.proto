@@ -9,6 +9,7 @@ option go_package = ".;schema_server";
 
 service DataServer {
     // datastore
+    rpc ListDataStore(ListDataStoreRequest)     returns (ListDataStoreResponse);
     // return a datastore details
     rpc GetDataStore(GetDataStoreRequest)       returns (GetDataStoreResponse);
     // creates a new datastore, either a MAIN or a CANDIDATE datastore
@@ -103,6 +104,11 @@ message SubscribeResponse {
 }
 
 // DS
+message ListDataStoreRequest{}
+message ListDataStoreResponse{
+    repeated GetDataStoreResponse datastores = 1;
+}
+
 message GetDataStoreRequest {
     // datastore name
     string name = 1;
