@@ -48,7 +48,7 @@ type DataServerClient interface {
 	// the client specified a list of paths it is interested on as well as
 	// a sample interval.
 	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (DataServer_SubscribeClient, error)
-	// watches a set of paths, returns the values each path point at if the value
+	// watches a set of paths, returns the values each path points at if the value
 	// changes.
 	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (DataServer_WatchClient, error)
 }
@@ -259,7 +259,7 @@ type DataServerServer interface {
 	// the client specified a list of paths it is interested on as well as
 	// a sample interval.
 	Subscribe(*SubscribeRequest, DataServer_SubscribeServer) error
-	// watches a set of paths, returns the values each path point at if the value
+	// watches a set of paths, returns the values each path points at if the value
 	// changes.
 	Watch(*WatchRequest, DataServer_WatchServer) error
 	mustEmbedUnimplementedDataServerServer()
