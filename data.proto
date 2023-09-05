@@ -57,10 +57,6 @@ message SetDataRequest {
     string                      name                    = 1;
     // datastore type and name
     DataStore                   datastore               = 2;
-    // data owner
-    string                      owner                   = 3;
-    // priority
-    uint32                      priority                = 4;
     // list of updates
     repeated Update             update                  = 10;
     // list of replaces
@@ -133,7 +129,7 @@ message CreateDataStoreRequest {
     schema.Schema       schema      = 3;
      // south bound interface target of this datastore
     Target              target      = 4;
-    //
+    // datastore sync strategy
     Sync                sync = 5;
 }
 message CreateDataStoreResponse {}
@@ -199,23 +195,24 @@ message DiffUpdate {
 }
 
 message TypedValue {
-    oneof value
+    uint64      timestamp            = 1;
+    oneof       value
     {
-        string string_val = 1;            // String value.
-        int64 int_val = 2;                // Integer value.
-        uint64 uint_val = 3;              // Unsigned integer value.
-        bool bool_val = 4;                // Bool value.
-        bytes bytes_val = 5;              // Arbitrary byte sequence value.
-        float float_val = 6;              // Floating point value.
-        Decimal64 decimal_val = 7;        // Decimal64 encoded value.
-        double Double_val = 8;            // Double encoded value.
-        ScalarArray leaflist_val = 9;     // Mixed type scalar array value.
-        google.protobuf.Any any_val = 10;  // protobuf.Any encoded bytes.
-        bytes json_val = 11;              // JSON-encoded text.
-        bytes json_ietf_val = 12;         // JSON-encoded text per RFC7951.
-        string ascii_val = 13;            // Arbitrary ASCII text.
-        bytes proto_bytes = 14;
-        IntendedValues intended_vals = 15;
+        string string_val            = 2;           
+        int64 int_val                = 3;               
+        uint64 uint_val              = 4;             
+        bool bool_val                = 5;               
+        bytes bytes_val              = 6;             
+        float float_val              = 7;             
+        Decimal64 decimal_val        = 8;       
+        double Double_val            = 9;           
+        ScalarArray leaflist_val     = 10;   
+        google.protobuf.Any any_val  = 11;
+        bytes json_val               = 12;             
+        bytes json_ietf_val          = 13;        
+        string ascii_val             = 14;           
+        bytes proto_bytes            = 15;
+        IntendedValues intended_vals = 16;
     }
 }
 
@@ -224,8 +221,8 @@ message IntendedValues {
 }
 
 message IntendedValue {
-    string      owner    = 1;
-    uint32      priority = 2;
+    string      owner     = 1;
+    uint32      priority  = 2;
     TypedValue  typed_val = 3;
 }
 
@@ -257,9 +254,13 @@ enum Type {
 
 message DataStore {
     // datastore type, MAIN or CANDIDATE
-    Type  type  = 1;
+    Type    type        = 1;
     // name of the datastore (candidate)
-    string name = 2;
+    string  name        = 2;
+    // candidate datastore owner
+    string  owner       = 3;
+    // candidate datastore priority
+    uint32  priority    = 4;
 }
 
 // Decimal64 is used to encode a fixed precision decimal number. The value
