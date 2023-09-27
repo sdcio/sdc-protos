@@ -23,7 +23,7 @@ service DataServer {
     // discards changes made to a CANDIDATE datastore
     rpc Discard(DiscardRequest)                 returns (DiscardResponse);
     // data
-    // retrieve data from a MAIN or CANDIDATE datastore, the data is specified 
+    // retrieve data from a MAIN or CANDIDATE datastore, the data is specified
     // with a set of schema.prot.Path
     rpc GetData(GetDataRequest)                 returns (stream GetDataResponse);
     // writes changes to a CANDIDATE datastore,
@@ -32,7 +32,7 @@ service DataServer {
     // returns a list of difference between a CANDIDATE datastore and its base
     rpc Diff(DiffRequest)                       returns (DiffResponse);
     // subscribes for notification from a MAIN datastore,
-    // the client specified a list of paths it is interested on as well as 
+    // the client specified a list of paths it is interested on as well as
     // a sample interval.
     rpc Subscribe(SubscribeRequest)             returns (stream SubscribeResponse);
     // watches a set of paths, returns the values each path points at if the value
@@ -198,32 +198,21 @@ message TypedValue {
     uint64      timestamp            = 1;
     oneof       value
     {
-        string string_val            = 2;           
-        int64 int_val                = 3;               
-        uint64 uint_val              = 4;             
-        bool bool_val                = 5;               
-        bytes bytes_val              = 6;             
-        float float_val              = 7;             
-        Decimal64 decimal_val        = 8;       
-        double Double_val            = 9;           
-        ScalarArray leaflist_val     = 10;   
+        string string_val            = 2;
+        int64 int_val                = 3;
+        uint64 uint_val              = 4;
+        bool bool_val                = 5;
+        bytes bytes_val              = 6;
+        float float_val              = 7;
+        Decimal64 decimal_val        = 8;
+        double Double_val            = 9;
+        ScalarArray leaflist_val     = 10;
         google.protobuf.Any any_val  = 11;
-        bytes json_val               = 12;             
-        bytes json_ietf_val          = 13;        
-        string ascii_val             = 14;           
+        bytes json_val               = 12;
+        bytes json_ietf_val          = 13;
+        string ascii_val             = 14;
         bytes proto_bytes            = 15;
-        IntendedValues intended_vals = 16;
     }
-}
-
-message IntendedValues {
-    repeated IntendedValue intended_vals = 1;
-}
-
-message IntendedValue {
-    string      owner     = 1;
-    uint32      priority  = 2;
-    TypedValue  typed_val = 3;
 }
 
 message UpdateResult {
@@ -244,7 +233,7 @@ message Notification {
     // Data elements that have changed values.
     repeated Update      update     = 4;
     // Data elements that have been deleted.
-    repeated schema.Path delete     = 5;     
+    repeated schema.Path delete     = 5;
 }
 
 enum Type {
@@ -260,7 +249,7 @@ message DataStore {
     // candidate datastore owner
     string  owner       = 3;
     // candidate datastore priority
-    uint32  priority    = 4;
+    int32  priority    = 4;
 }
 
 // Decimal64 is used to encode a fixed precision decimal number. The value
