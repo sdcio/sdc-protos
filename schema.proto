@@ -285,7 +285,7 @@ enum SchemaStatus {
 }
 
 enum DataType {
-    ALL = 0;
-    CONFIG = 1;
-    STATE = 2;
+    ALL      = 0;
+    CONFIG   = 1;
+    STATE    = 2;
 }
