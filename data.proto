@@ -22,6 +22,7 @@ service DataServer {
     rpc Rebase(RebaseRequest)                   returns (RebaseResponse);
     // discards changes made to a CANDIDATE datastore
     rpc Discard(DiscardRequest)                 returns (DiscardResponse);
+    
     // data
     // retrieve data from a MAIN or CANDIDATE datastore, the data is specified
     // with a set of schema.prot.Path
@@ -239,25 +240,26 @@ message Notification {
 enum Type {
     MAIN      = 0;
     CANDIDATE = 1;
+    INTENDED  = 2;
 }
 
 message DataStore {
-    // datastore type, MAIN or CANDIDATE
+    // datastore type, MAIN, CANDIDATE or INTENDED
     Type    type        = 1;
     // name of the datastore (candidate)
     string  name        = 2;
     // candidate datastore owner
     string  owner       = 3;
     // candidate datastore priority
-    int32  priority    = 4;
+    int32  priority     = 4;
 }
 
 // Decimal64 is used to encode a fixed precision decimal number. The value
 // is expressed as a set of digits with the precision specifying the
 // number of digits following the decimal point in the digit set.
 message Decimal64 {
-  int64  digits = 1;         // Set of digits.
-  uint32 precision = 2;     // Number of digits following the decimal point.
+  int64  digits    = 1;         // Set of digits.
+  uint32 precision = 2;      // Number of digits following the decimal point.
 }
 
 // ScalarArray is used to encode a mixed-type array of values.
