@@ -39,6 +39,10 @@ service DataServer {
     // watches a set of paths, returns the values each path points at if the value
     // changes.
     rpc Watch(WatchRequest)                     returns (stream WatchResponse);
+
+    // data intent
+    rpc GetIntent(GetIntentRequest) returns (GetIntentResponse);
+    rpc SetIntent(SetIntentRequest) returns (SetIntentResponse);
 }
 
 // messages
@@ -182,6 +186,34 @@ message WatchRequest {
 message WatchResponse {
     Notification notification = 1;
 }
+
+message GetIntentRequest {
+    // datastore name
+    string name     = 1;
+    // intent name
+    string intent   = 2;
+    // intent priority
+    int32  priority = 3;
+}
+
+message GetIntentResponse {
+    repeated Notification notification = 1;
+}
+
+message SetIntentRequest {
+    // datastore name
+    string          name   = 1;
+    // intent name
+    string          intent = 2;
+    // intent priority
+    int32  priority        = 3;
+    // list of updates
+    repeated Update update = 4;
+    // delete indicator
+    bool            delete = 5;
+}
+
+message SetIntentResponse {}
 
 // sub messages
 message Update {
