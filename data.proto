@@ -40,9 +40,12 @@ service DataServer {
     // changes.
     rpc Watch(WatchRequest)                     returns (stream WatchResponse);
 
-    // data intent
-    rpc GetIntent(GetIntentRequest) returns (GetIntentResponse);
-    rpc SetIntent(SetIntentRequest) returns (SetIntentResponse);
+    // returns an intent details: name, priority and list of updates
+    rpc GetIntent(GetIntentRequest)     returns (GetIntentResponse);
+    // applies an intent to the specified datastore
+    rpc SetIntent(SetIntentRequest)     returns (SetIntentResponse);
+    // list intents for a given datastore (name and priority)
+    rpc ListIntent(ListIntentRequest)   returns (ListIntentResponse);
 }
 
 // messages
@@ -66,7 +69,7 @@ message SetDataRequest {
     repeated Update             update                  = 10;
     // list of replaces
     repeated Update             replace                 = 11;
-    // list of deltes
+    // list of deletes
     repeated schema.Path        delete                  = 12;
 }
 message SetDataResponse {
@@ -197,7 +200,10 @@ message GetIntentRequest {
 }
 
 message GetIntentResponse {
-    repeated Notification notification = 1;
+    // datastore name
+    string name   = 1;
+    // intent details
+    Intent intent = 2;
 }
 
 message SetIntentRequest {
@@ -214,6 +220,16 @@ message SetIntentRequest {
 }
 
 message SetIntentResponse {}
+
+message ListIntentRequest{
+    // datastore name
+    string name      = 1;
+}
+message ListIntentResponse{
+    string          name   = 1;
+    // list of intents without updates
+    repeated Intent intent = 2;
+}
 
 // sub messages
 message Update {
@@ -362,4 +378,13 @@ message Watch {
     repeated schema.Path path = 1;
     schema.DataType      data_type = 2;
     uint64               heartbeat_interval = 3;
+}
+
+message Intent {
+    // intent name
+    string          intent = 1;
+    // intent priority
+    int32  priority        = 2;
+    // list of updates
+    repeated Update update = 3;
 }

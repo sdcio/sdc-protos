@@ -52,9 +52,12 @@ type DataServerClient interface {
 	// watches a set of paths, returns the values each path points at if the value
 	// changes.
 	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (DataServer_WatchClient, error)
-	// data intent
+	// returns an intent details: name, priority and list of updates
 	GetIntent(ctx context.Context, in *GetIntentRequest, opts ...grpc.CallOption) (*GetIntentResponse, error)
+	// applies an intent to the specified datastore
 	SetIntent(ctx context.Context, in *SetIntentRequest, opts ...grpc.CallOption) (*SetIntentResponse, error)
+	// list intents for a given datastore (name and priority)
+	ListIntent(ctx context.Context, in *ListIntentRequest, opts ...grpc.CallOption) (*ListIntentResponse, error)
 }
 
 type dataServerClient struct {
@@ -260,6 +263,15 @@ func (c *dataServerClient) SetIntent(ctx context.Context, in *SetIntentRequest, 
 	return out, nil
 }
 
+func (c *dataServerClient) ListIntent(ctx context.Context, in *ListIntentRequest, opts ...grpc.CallOption) (*ListIntentResponse, error) {
+	out := new(ListIntentResponse)
+	err := c.cc.Invoke(ctx, "/data.DataServer/ListIntent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DataServerServer is the server API for DataServer service.
 // All implementations must embed UnimplementedDataServerServer
 // for forward compatibility
@@ -294,9 +306,12 @@ type DataServerServer interface {
 	// watches a set of paths, returns the values each path points at if the value
 	// changes.
 	Watch(*WatchRequest, DataServer_WatchServer) error
-	// data intent
+	// returns an intent details: name, priority and list of updates
 	GetIntent(context.Context, *GetIntentRequest) (*GetIntentResponse, error)
+	// applies an intent to the specified datastore
 	SetIntent(context.Context, *SetIntentRequest) (*SetIntentResponse, error)
+	// list intents for a given datastore (name and priority)
+	ListIntent(context.Context, *ListIntentRequest) (*ListIntentResponse, error)
 	mustEmbedUnimplementedDataServerServer()
 }
 
@@ -345,6 +360,9 @@ func (UnimplementedDataServerServer) GetIntent(context.Context, *GetIntentReques
 }
 func (UnimplementedDataServerServer) SetIntent(context.Context, *SetIntentRequest) (*SetIntentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetIntent not implemented")
+}
+func (UnimplementedDataServerServer) ListIntent(context.Context, *ListIntentRequest) (*ListIntentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListIntent not implemented")
 }
 func (UnimplementedDataServerServer) mustEmbedUnimplementedDataServerServer() {}
 
@@ -620,6 +638,24 @@ func _DataServer_SetIntent_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DataServer_ListIntent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListIntentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServerServer).ListIntent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/data.DataServer/ListIntent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServerServer).ListIntent(ctx, req.(*ListIntentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DataServer_ServiceDesc is the grpc.ServiceDesc for DataServer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -670,6 +706,10 @@ var DataServer_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetIntent",
 			Handler:    _DataServer_SetIntent_Handler,
+		},
+		{
+			MethodName: "ListIntent",
+			Handler:    _DataServer_ListIntent_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
