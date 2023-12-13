@@ -50,9 +50,13 @@ service DataServer {
 
 // messages
 message GetDataRequest {
+    // data store name
     string               name      = 1;
+    // data store type
     DataStore            datastore = 2;
+    // path list
     repeated schema.Path path      = 3;
+    // dataType config, state
     schema.DataType      data_type = 4;
 }
 message GetDataResponse {
@@ -98,6 +102,7 @@ message DiffResponse {
 message SubscribeRequest {
     // datastore name
     string                name          = 1;
+    // subscriptions list
     repeated Subscription subscription  = 2;
 }
 message SubscribeResponse {
@@ -138,7 +143,7 @@ message CreateDataStoreRequest {
      // south bound interface target of this datastore
     Target              target      = 4;
     // datastore sync strategy
-    Sync                sync = 5;
+    Sync                sync        = 5;
 }
 message CreateDataStoreResponse {}
 
@@ -182,7 +187,9 @@ message DiscardRequest {
 message DiscardResponse {}
 
 message WatchRequest {
+    // datastore name
     string         name = 1;
+    // watched objects
     repeated Watch watch = 2;
 }
 
@@ -342,10 +349,16 @@ message Credentials {
 }
 
 message Sync {
+    // if true, all received notifications 
+    // are validated agains the schema
     bool                validate        = 1;
+    // number of notification to buffer while writing
+    // to cache
     int64               buffer          = 2;
+    // number of cache writers
     int64               write_workers   = 3;
-    repeated SyncConfig config            = 4;
+    // list of sync strategies
+    repeated SyncConfig config          = 4;
 }
 
 message SyncConfig {
@@ -353,13 +366,14 @@ message SyncConfig {
     string name = 1;
     // paths to subscribe to
     repeated string path = 2;
-    // mode, on-change, sample, or once
+    // gnmi only: mode, on-change, sample, or once
     SyncMode mode = 3;
-    // encoding
+    // gnmi only: encoding
     string encoding = 4;
-    // interval for mode sample or once
+    // interval for gNMI mode sample or once
+    // as well for netconf
     uint64 interval = 5;
-    // protocol used to sync the config
+    // protocol used to sync the config: gnmi or netconf
     string protocol = 6;
 }
 
@@ -370,15 +384,23 @@ enum SyncMode {
 }
 
 message Subscription {
+    // objects to subscribe to
     repeated schema.Path path               = 1;
+    // data type config, state
     schema.DataType      data_type          = 2;
+    // sample interval
     uint64               sample_interval    = 3;
+    // suppress redandant.. this is probably not needed
     bool                 suppress_redundant = 4;
 }
 
 message Watch {
+    // objects to watch, identified by a path.
     repeated schema.Path path = 1;
+    // data type config, state
     schema.DataType      data_type = 2;
+    // heartbeat interval after which the object
+    // data is sent to the watcher even if it did not change.
     uint64               heartbeat_interval = 3;
 }
 
