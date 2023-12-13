@@ -345,10 +345,10 @@ message Sync {
     bool                validate        = 1;
     int64               buffer          = 2;
     int64               write_workers   = 3;
-    repeated GNMISync   gnmi            = 4;
+    repeated SyncConfig config            = 4;
 }
 
-message GNMISync {
+message SyncConfig {
     // sync routing name
     string name = 1;
     // paths to subscribe to
@@ -359,6 +359,8 @@ message GNMISync {
     string encoding = 4;
     // interval for mode sample or once
     uint64 interval = 5;
+    // protocol used to sync the config
+    string protocol = 6;
 }
 
 enum SyncMode {
