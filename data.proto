@@ -327,10 +327,18 @@ message ScalarArray {
 
 // Southbound interface of the datastore
 message Target {
+    // target type: gnmi or netconf
     string      type        = 1;
+    // target address
     string      address     = 2;
+    // tls client certs, ca cert or skip_verify
     TLS         tls         = 3;
+    // target credentials
     Credentials credentials = 4;
+    // for netconf targets:
+    // include namespace if a prefix is present 
+    // in the path elements.
+    bool      include_ns = 5;
 }
 
 // TLS Config
