@@ -44,9 +44,10 @@ message GetSchemaDetailsRequest{
 }
 
 message GetSchemaDetailsResponse{
-    Schema schema = 1; // with status
-    repeated string file = 2;
+    Schema schema             = 1; // with status
+    repeated string file      = 2;
     repeated string directory = 3;
+    repeated string exclude   = 4;
 }
 
 message ListSchemaRequest {}
