@@ -65,6 +65,7 @@ message GetSchemaRequest {
 message GetSchemaResponse {
     SchemaElem schema = 1;
 }
+
 message SchemaElem {
     oneof schema {
         ContainerSchema container = 1;
@@ -72,6 +73,7 @@ message SchemaElem {
         LeafListSchema  leaflist  = 3;
     }
 }
+
 message CreateSchemaRequest {
     Schema          schema       = 1; // status unset
     repeated string file         = 2;
@@ -120,7 +122,7 @@ message ToPathRequest {
     Schema          schema       = 2;
 }
 message ToPathResponse {
-    Path path =1;
+    Path path = 1;
 }
 
 message ExpandPathRequest {
@@ -137,12 +139,12 @@ message ExpandPathResponse {
 message Hash {
   enum HashMethod {
     UNSPECIFIED = 0; // Error
-    SHA256 = 1;
-    SHA512 = 2;
-    MD5 = 3;
+    MD5         = 1;
+    SHA256      = 2;
+    SHA512      = 3;
   }
   HashMethod method = 1;
-  bytes hash = 2;
+  bytes      hash   = 2;
 }
 
 message UploadSchemaFinalize{}
@@ -170,7 +172,7 @@ message ContainerSchema {
     bool is_presence        = 20;
     bool is_state           = 21;
     bool is_user_ordered    = 22;
-    string if_feature       = 23;
+    repeated string if_feature       = 23;
     
     ChoiceInfo choice_info = 30;
 }
@@ -193,7 +195,7 @@ message LeafListSchema {
 
     bool is_state        = 21;
     bool is_user_ordered = 22;
-    string if_feature    = 23;
+    repeated string if_feature    = 23;
     
     ChoiceInfo choice_info = 30;
 }
@@ -214,7 +216,7 @@ message LeafSchema {
     string default                         = 12;
 
     bool is_state       = 21;
-    string if_feature   = 23;
+    repeated string if_feature   = 23;
     
     repeated string reference = 25;
     
