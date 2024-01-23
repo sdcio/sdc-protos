@@ -173,6 +173,8 @@ message ContainerSchema {
     bool is_state           = 21;
     bool is_user_ordered    = 22;
     repeated string if_feature       = 23;
+    
+    ChoiceInfo choice_info = 30;
 }
 
 message LeafListSchema {
@@ -194,6 +196,8 @@ message LeafListSchema {
     bool is_state        = 21;
     bool is_user_ordered = 22;
     repeated string if_feature    = 23;
+    
+    ChoiceInfo choice_info = 30;
 }
 
 message LeafSchema {
@@ -215,6 +219,8 @@ message LeafSchema {
     repeated string if_feature   = 23;
     
     repeated string reference = 25;
+    
+    ChoiceInfo choice_info = 30;
 }
 
 message SchemaLeafType {
@@ -291,4 +297,21 @@ enum DataType {
     ALL      = 0;
     CONFIG   = 1;
     STATE    = 2;
+}
+
+message ChoiceInfo {
+    // If the schema object (container, field, leaf-list) 
+    // is a case substatement
+    // this attribute will hold 
+    // the choice statement name
+    string choice = 1;
+    // If the schema object (container, field, leaf-list) 
+    // is a case substatement
+    // this attribute will hold 
+    // the choice statement name
+    string case = 2;
+    // Contains the list of alternative cases.
+    // The items are prefix with teh case name.
+    // This list includes self.
+    repeated string alt_case = 3;
 }
