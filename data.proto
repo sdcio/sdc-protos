@@ -58,7 +58,10 @@ message GetDataRequest {
     repeated schema.Path path      = 3;
     // dataType config, state
     schema.DataType      data_type = 4;
+    // data encoding
+    Encoding encoding = 5;
 }
+
 message GetDataResponse {
     // list of paths and values
     repeated Notification notification = 1;
@@ -224,9 +227,14 @@ message SetIntentRequest {
     repeated Update update = 4;
     // delete indicator
     bool            delete = 5;
+    // dry run indicator
+    bool            dry_run = 6;
 }
 
-message SetIntentResponse {}
+message SetIntentResponse {
+    repeated Update update = 1;
+    repeated schema.Path   delete = 2;
+}
 
 message ListIntentRequest{
     // datastore name
@@ -315,6 +323,14 @@ message DataStore {
 message Decimal64 {
   int64  digits    = 1;         // Set of digits.
   uint32 precision = 2;         // Number of digits following the decimal point.
+}
+
+// GetDataRequest encoding
+enum Encoding {
+    STRING    = 0;
+    JSON      = 1;
+    JSON_IETF = 2;
+    PROTO     = 3;
 }
 
 // ScalarArray is used to encode a mixed-type array of values.
