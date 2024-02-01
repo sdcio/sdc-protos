@@ -344,28 +344,31 @@ message ScalarArray {
 // Southbound interface of the datastore
 message Target {
     // target type: gnmi or netconf
-    string          type                    = 1;
+    string          type                      = 1;
     // target address
-    string          address                 = 2;
+    string          address                   = 2;
     // tls client certs, ca cert or skip_verify
-    TLS             tls                     = 3;
+    TLS             tls                       = 3;
     // target credentials
-    Credentials     credentials             = 4;
+    Credentials     credentials               = 4;
     // for netconf targets:
     // include namespace if a prefix is present 
     // in the path elements.
-    bool            include_ns              = 5;
+    bool            include_ns                = 5;
     // for netconf targets:
     // add base1.0 as ns for operation attribute.
-    bool            operation_with_ns       = 6;
+    bool            operation_with_ns         = 6;
     // for netconf targets:
     // use operation remove instead of delete when deleting.
-    bool            use_operation_remove    = 7;
+    bool            use_operation_remove      = 7;
+    // for netconf type, specifies which datastore to commit.
+    // Can be either `candidate` or `running`.
+    CommitCandidate          commit_candidate = 8;
     // reflects the target connection status
-    TargetStatus    status                  = 8;
+    TargetStatus    status                    = 9;
     // if the status is NOT_CONNECTED, this fields might
     // more details about the reason.
-    string          status_details          = 9;
+    string          status_details            = 10;
 }
 
 enum TargetStatus {
@@ -373,6 +376,12 @@ enum TargetStatus {
     CONNECTED       = 1;
     NOT_CONNECTED   = 2;
 }
+
+enum CommitCandidate {
+    COMMIT_CANDIDATE = 0;
+    COMMIT_RUNNING   = 1;
+}
+
 // TLS Config
 message TLS {
     string ca           = 1;
