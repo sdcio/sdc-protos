@@ -1,3 +1,17 @@
+// Copyright 2024 Nokia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 syntax = "proto3";
 
 package schema;
@@ -256,34 +270,6 @@ message Path {
 message SchemaPattern {
     string pattern  = 1;
     bool   inverted = 2;
-}
-
-enum LeafType {
-    BINARY = 0;
-    BITS = 1;
-    BOOLEAN = 2;
-    DECIMAL64 = 3;
-    EMPTY = 4;
-    ENUM = 5;
-    IDENTITYREF = 6;
-    INSTANCE_IDENTIFIER = 7;
-    INT16 = 8;
-    INT32 = 9;
-    INT64 = 10;
-    INT8 = 11;
-    INTERFACE_NAME = 12;
-    IP_ADDRESS = 13;
-    IP_ADDRESS_WITH_ZONE = 14;
-    IP_PREFIX = 15;
-    MAC_ADDRESS = 16;
-    STRING = 17;
-    SUBINTERFACE_NAME = 18;
-    UINT16 = 19;
-    UINT32 = 20;
-    UINT64 = 21;
-    UINT8 = 22;
-    UNION = 23;
-    ROUTE_DISTINGUISHER = 24;
 }
 
 enum SchemaStatus {
