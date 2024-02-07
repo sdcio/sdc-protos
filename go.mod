@@ -1,4 +1,4 @@
-module github.com/iptecharch/sdc-protos
+module github.com/sdcio/sdc-protos
 
 go 1.20
 
