@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/golang/protobuf v1.5.3
-	google.golang.org/grpc v1.60.1
+	google.golang.org/grpc v1.61.1
 	google.golang.org/protobuf v1.32.0
 )
 
