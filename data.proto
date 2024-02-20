@@ -60,6 +60,8 @@ service DataServer {
     rpc SetIntent(SetIntentRequest)     returns (SetIntentResponse);
     // list intents for a given datastore (name and priority)
     rpc ListIntent(ListIntentRequest)   returns (ListIntentResponse);
+
+    rpc WatchDeviations(WatchDeviationRequest) returns (stream WatchDeviationResponse);
 }
 
 // messages
@@ -258,6 +260,37 @@ message ListIntentResponse{
     string          name   = 1;
     // list of intents without updates
     repeated Intent intent = 2;
+}
+
+message WatchDeviationRequest {
+    // datastore name
+    repeated string name = 1;
+}
+
+message WatchDeviationResponse {
+    // datastore name
+    string          name            = 1;
+    string          intent          = 2;
+    DeviationEvent  event           = 3;
+    DeviationReason reason          = 4;
+    schema.Path     path            = 5;
+    TypedValue      expected_value  = 6;
+    TypedValue      current_value   = 7;
+}
+
+enum DeviationEvent {
+    DE_UNKNOWN  = 0;
+    START       = 1;
+    END         = 2;
+    UPDATE      = 3;
+    CLEAR       = 4;
+}
+
+enum DeviationReason {
+    DR_UNKNOWN  = 0;
+    UNHANDLED   = 1;
+    NOT_APPLIED = 2;
+    OVERRULED   = 3;   
 }
 
 // sub messages
