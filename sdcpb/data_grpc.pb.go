@@ -58,6 +58,7 @@ type DataServerClient interface {
 	SetIntent(ctx context.Context, in *SetIntentRequest, opts ...grpc.CallOption) (*SetIntentResponse, error)
 	// list intents for a given datastore (name and priority)
 	ListIntent(ctx context.Context, in *ListIntentRequest, opts ...grpc.CallOption) (*ListIntentResponse, error)
+	WatchDeviations(ctx context.Context, in *WatchDeviationRequest, opts ...grpc.CallOption) (DataServer_WatchDeviationsClient, error)
 }
 
 type dataServerClient struct {
@@ -272,6 +273,38 @@ func (c *dataServerClient) ListIntent(ctx context.Context, in *ListIntentRequest
 	return out, nil
 }
 
+func (c *dataServerClient) WatchDeviations(ctx context.Context, in *WatchDeviationRequest, opts ...grpc.CallOption) (DataServer_WatchDeviationsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[3], "/data.DataServer/WatchDeviations", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dataServerWatchDeviationsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DataServer_WatchDeviationsClient interface {
+	Recv() (*WatchDeviationResponse, error)
+	grpc.ClientStream
+}
+
+type dataServerWatchDeviationsClient struct {
+	grpc.ClientStream
+}
+
+func (x *dataServerWatchDeviationsClient) Recv() (*WatchDeviationResponse, error) {
+	m := new(WatchDeviationResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DataServerServer is the server API for DataServer service.
 // All implementations must embed UnimplementedDataServerServer
 // for forward compatibility
@@ -312,6 +345,7 @@ type DataServerServer interface {
 	SetIntent(context.Context, *SetIntentRequest) (*SetIntentResponse, error)
 	// list intents for a given datastore (name and priority)
 	ListIntent(context.Context, *ListIntentRequest) (*ListIntentResponse, error)
+	WatchDeviations(*WatchDeviationRequest, DataServer_WatchDeviationsServer) error
 	mustEmbedUnimplementedDataServerServer()
 }
 
@@ -363,6 +397,9 @@ func (UnimplementedDataServerServer) SetIntent(context.Context, *SetIntentReques
 }
 func (UnimplementedDataServerServer) ListIntent(context.Context, *ListIntentRequest) (*ListIntentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListIntent not implemented")
+}
+func (UnimplementedDataServerServer) WatchDeviations(*WatchDeviationRequest, DataServer_WatchDeviationsServer) error {
+	return status.Errorf(codes.Unimplemented, "method WatchDeviations not implemented")
 }
 func (UnimplementedDataServerServer) mustEmbedUnimplementedDataServerServer() {}
 
@@ -656,6 +693,27 @@ func _DataServer_ListIntent_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DataServer_WatchDeviations_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchDeviationRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DataServerServer).WatchDeviations(m, &dataServerWatchDeviationsServer{stream})
+}
+
+type DataServer_WatchDeviationsServer interface {
+	Send(*WatchDeviationResponse) error
+	grpc.ServerStream
+}
+
+type dataServerWatchDeviationsServer struct {
+	grpc.ServerStream
+}
+
+func (x *dataServerWatchDeviationsServer) Send(m *WatchDeviationResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // DataServer_ServiceDesc is the grpc.ServiceDesc for DataServer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -726,6 +784,11 @@ var DataServer_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Watch",
 			Handler:       _DataServer_Watch_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "WatchDeviations",
+			Handler:       _DataServer_WatchDeviations_Handler,
 			ServerStreams: true,
 		},
 	},
