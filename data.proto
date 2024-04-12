@@ -477,6 +477,7 @@ enum SyncMode {
     SM_ON_CHANGE = 0;
     SM_SAMPLE    = 1;
     SM_ONCE      = 2;
+    SM_GET       = 3;
 }
 
 message Subscription {
