@@ -177,6 +177,7 @@ message ContainerSchema {
     repeated LeafSchema fields          = 7;
     repeated LeafListSchema leaflists   = 8;
     repeated string children            = 9;
+    repeated string mandatory_children            = 10;
 
     repeated MustStatement must_statements = 11;
 
@@ -210,8 +211,6 @@ message LeafListSchema {
     bool is_state        = 21;
     bool is_user_ordered = 22;
     repeated string if_feature    = 23;
-    
-    ChoiceInfo choice_info = 30;
 }
 
 message LeafSchema {
@@ -233,8 +232,6 @@ message LeafSchema {
     repeated string if_feature   = 23;
     
     repeated string reference = 25;
-    
-    ChoiceInfo choice_info = 30;
 }
 
 message SchemaLeafType {
@@ -290,14 +287,13 @@ message ChoiceInfo {
     // is a case substatement
     // this attribute will hold 
     // the choice statement name
-    string choice = 1;
-    // If the schema object (container, field, leaf-list) 
-    // is a case substatement
-    // this attribute will hold 
-    // the choice statement name
-    string case = 2;
-    // Contains the list of alternative cases.
-    // The items are prefix with teh case name.
-    // This list includes self.
-    repeated string alt_case = 3;
+    map <string, ChoiceInfoChoice> choice = 1; 
+}
+
+message ChoiceInfoChoice {
+    map <string, ChoiceCase> case = 1;
+}
+
+message ChoiceCase {
+    repeated string elements = 1;
 }
