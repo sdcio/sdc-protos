@@ -245,6 +245,9 @@ message SetIntentRequest {
     bool            delete = 5;
     // dry run indicator
     bool            dry_run = 6;
+    // delete only from intended store
+    // basically keeping the config on the device but unmanaged
+    bool            only_intended = 7;
 }
 
 message SetIntentResponse {
