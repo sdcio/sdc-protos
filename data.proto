@@ -99,6 +99,8 @@ message SetDataResponse {
     // A set of responses specifying the result of the operations specified in
     // the SetRequest.
     repeated UpdateResult response = 2;  
+    // e.g. netconf rpc-errors with severity warning
+    repeated string warnings = 3;
     // Timestamp of transaction (ns since epoch).                  
     int64 timestamp = 4;                 
 }
@@ -248,8 +250,9 @@ message SetIntentRequest {
 }
 
 message SetIntentResponse {
-    repeated Update update = 1;
-    repeated schema.Path   delete = 2;
+    repeated Update         update = 1;
+    repeated schema.Path    delete = 2;
+    repeated string         warnings = 3;
 }
 
 message ListIntentRequest{
