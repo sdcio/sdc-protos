@@ -244,6 +244,7 @@ message SchemaLeafType {
     string                  leafref     = 7;
     repeated SchemaPattern  patterns    = 9;
     repeated SchemaLeafType union_types = 10;
+    string identity_prefix = 11;
 }
 
 message MustStatement {
