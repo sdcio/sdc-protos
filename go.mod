@@ -1,6 +1,8 @@
 module github.com/sdcio/sdc-protos
 
-go 1.20
+go 1.21
+
+toolchain go1.22.6
 
 require (
 	github.com/golang/protobuf v1.5.4
