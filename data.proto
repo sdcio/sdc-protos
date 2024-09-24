@@ -22,314 +22,310 @@ package data;
 option go_package = ".;schema_server";
 
 service DataServer {
-    // datastore
-    rpc ListDataStore(ListDataStoreRequest)     returns (ListDataStoreResponse);
-    // return a datastore details
-    rpc GetDataStore(GetDataStoreRequest)       returns (GetDataStoreResponse);
-    // creates a new datastore, either a MAIN or a CANDIDATE datastore
-    rpc CreateDataStore(CreateDataStoreRequest) returns (CreateDataStoreResponse);
-    // deletes a datastore, either a MAIN or a CANDIDATE datastore
-    rpc DeleteDataStore(DeleteDataStoreRequest) returns (DeleteDataStoreResponse);
-    // commits changes in a CANDIDATE datastore to the datastore Target
-    rpc Commit(CommitRequest)                   returns (CommitResponse);
-    // rebases a CANDIDATE datastore
-    rpc Rebase(RebaseRequest)                   returns (RebaseResponse);
-    // discards changes made to a CANDIDATE datastore
-    rpc Discard(DiscardRequest)                 returns (DiscardResponse);
-    
-    // data
-    // retrieve data from a MAIN or CANDIDATE datastore, the data is specified
-    // with a set of schema.prot.Path
-    rpc GetData(GetDataRequest)                 returns (stream GetDataResponse);
-    // writes changes to a CANDIDATE datastore,
-    // validates the values written against the datastore schema.
-    rpc SetData(SetDataRequest)                 returns (SetDataResponse);
-    // returns a list of difference between a CANDIDATE datastore and its base
-    rpc Diff(DiffRequest)                       returns (DiffResponse);
-    // subscribes for notification from a MAIN datastore,
-    // the client specified a list of paths it is interested on as well as
-    // a sample interval.
-    rpc Subscribe(SubscribeRequest)             returns (stream SubscribeResponse);
-    // watches a set of paths, returns the values each path points at if the value
-    // changes.
-    rpc Watch(WatchRequest)                     returns (stream WatchResponse);
+  // datastore
+  rpc ListDataStore(ListDataStoreRequest) returns (ListDataStoreResponse);
+  // return a datastore details
+  rpc GetDataStore(GetDataStoreRequest) returns (GetDataStoreResponse);
+  // creates a new datastore, either a MAIN or a CANDIDATE datastore
+  rpc CreateDataStore(CreateDataStoreRequest) returns (CreateDataStoreResponse);
+  // deletes a datastore, either a MAIN or a CANDIDATE datastore
+  rpc DeleteDataStore(DeleteDataStoreRequest) returns (DeleteDataStoreResponse);
+  // commits changes in a CANDIDATE datastore to the datastore Target
+  rpc Commit(CommitRequest) returns (CommitResponse);
+  // rebases a CANDIDATE datastore
+  rpc Rebase(RebaseRequest) returns (RebaseResponse);
+  // discards changes made to a CANDIDATE datastore
+  rpc Discard(DiscardRequest) returns (DiscardResponse);
 
-    // returns an intent details: name, priority and list of updates
-    rpc GetIntent(GetIntentRequest)     returns (GetIntentResponse);
-    // applies an intent to the specified datastore
-    rpc SetIntent(SetIntentRequest)     returns (SetIntentResponse);
-    // list intents for a given datastore (name and priority)
-    rpc ListIntent(ListIntentRequest)   returns (ListIntentResponse);
+  // data
+  // retrieve data from a MAIN or CANDIDATE datastore, the data is specified
+  // with a set of schema.prot.Path
+  rpc GetData(GetDataRequest) returns (stream GetDataResponse);
+  // writes changes to a CANDIDATE datastore,
+  // validates the values written against the datastore schema.
+  rpc SetData(SetDataRequest) returns (SetDataResponse);
+  // returns a list of difference between a CANDIDATE datastore and its base
+  rpc Diff(DiffRequest) returns (DiffResponse);
+  // subscribes for notification from a MAIN datastore,
+  // the client specified a list of paths it is interested on as well as
+  // a sample interval.
+  rpc Subscribe(SubscribeRequest) returns (stream SubscribeResponse);
+  // watches a set of paths, returns the values each path points at if the value
+  // changes.
+  rpc Watch(WatchRequest) returns (stream WatchResponse);
 
-    rpc WatchDeviations(WatchDeviationRequest) returns (stream WatchDeviationResponse);
+  // returns an intent details: name, priority and list of updates
+  rpc GetIntent(GetIntentRequest) returns (GetIntentResponse);
+  // applies an intent to the specified datastore
+  rpc SetIntent(SetIntentRequest) returns (SetIntentResponse);
+  // list intents for a given datastore (name and priority)
+  rpc ListIntent(ListIntentRequest) returns (ListIntentResponse);
+
+  rpc WatchDeviations(WatchDeviationRequest)
+      returns (stream WatchDeviationResponse);
 }
 
 // messages
 message GetDataRequest {
-    // data store name
-    string               name      = 1;
-    // data store type
-    DataStore            datastore = 2;
-    // path list
-    repeated schema.Path path      = 3;
-    // dataType config, state
-    schema.DataType      data_type = 4;
-    // data encoding
-    Encoding encoding = 5;
+  // data store name
+  string name               = 1;
+  // data store type
+  DataStore datastore       = 2;
+  // path list
+  repeated schema.Path path = 3;
+  // dataType config, state
+  schema.DataType data_type = 4;
+  // data encoding
+  Encoding encoding         = 5;
 }
 
 message GetDataResponse {
-    // list of paths and values
-    repeated Notification notification = 1;
+  // list of paths and values
+  repeated Notification notification = 1;
 }
 
 message SetDataRequest {
-    // datastore name
-    string                      name                    = 1;
-    // datastore type and name
-    DataStore                   datastore               = 2;
-    // list of updates
-    repeated Update             update                  = 10;
-    // list of replaces
-    repeated Update             replace                 = 11;
-    // list of deletes
-    repeated schema.Path        delete                  = 12;
+  // datastore name
+  string name                 = 1;
+  // datastore type and name
+  DataStore datastore         = 2;
+  // list of updates
+  repeated Update update      = 10;
+  // list of replaces
+  repeated Update replace     = 11;
+  // list of deletes
+  repeated schema.Path delete = 12;
 }
 message SetDataResponse {
-    // A set of responses specifying the result of the operations specified in
-    // the SetRequest.
-    repeated UpdateResult response = 2;  
-    // e.g. netconf rpc-errors with severity warning
-    repeated string warnings = 3;
-    // Timestamp of transaction (ns since epoch).                  
-    int64 timestamp = 4;                 
+  // A set of responses specifying the result of the operations specified in
+  // the SetRequest.
+  repeated UpdateResult response = 2;
+  // e.g. netconf rpc-errors with severity warning
+  repeated string warnings       = 3;
+  // Timestamp of transaction (ns since epoch).
+  int64 timestamp                = 4;
 }
 
 message DiffRequest {
-    // datastore name
-    string    name       = 1;
-    // CANDIDATE datastore name
-    DataStore datastore = 2;
+  // datastore name
+  string name         = 1;
+  // CANDIDATE datastore name
+  DataStore datastore = 2;
 }
 message DiffResponse {
-    // datastore name
-    string              name        = 1;
-    // CANDIDATE datastore name
-    DataStore           datastore  = 2;
-    // list of paths and values that differ between MAIN and CANDIDATE
-    repeated DiffUpdate diff        = 3;
+  // datastore name
+  string name              = 1;
+  // CANDIDATE datastore name
+  DataStore datastore      = 2;
+  // list of paths and values that differ between MAIN and CANDIDATE
+  repeated DiffUpdate diff = 3;
 }
 
 message SubscribeRequest {
-    // datastore name
-    string                name          = 1;
-    // subscriptions list
-    repeated Subscription subscription  = 2;
+  // datastore name
+  string name                        = 1;
+  // subscriptions list
+  repeated Subscription subscription = 2;
 }
 message SubscribeResponse {
-    oneof response {
-        Notification update = 1;
-        bool sync_response  = 3;
-    }
+  oneof response {
+    Notification update        = 1;
+    bool         sync_response = 3;
+  }
 }
 
 // DS
-message ListDataStoreRequest{}
-message ListDataStoreResponse{
-    repeated GetDataStoreResponse datastores = 1;
-}
+message ListDataStoreRequest {}
+message ListDataStoreResponse { repeated GetDataStoreResponse datastores = 1; }
 
 message GetDataStoreRequest {
-    // datastore name
-    string name = 1;
+  // datastore name
+  string name = 1;
 }
 message GetDataStoreResponse {
-    // datastore name
-    string              name        = 1;
-    // list of candidates in this datastore
-    repeated DataStore  datastore   = 2;
-    // the schema this datastore should comply with
-    schema.Schema       schema      = 3;
-    // south bound interface target of this datastore
-    Target              target      = 4;
+  // datastore name
+  string name                  = 1;
+  // list of candidates in this datastore
+  repeated DataStore datastore = 2;
+  // the schema this datastore should comply with
+  schema.Schema schema         = 3;
+  // south bound interface target of this datastore
+  Target target                = 4;
 }
 
 message CreateDataStoreRequest {
-    // datastore name
-    string              name        = 1;
-    // datastore type to be created
-    DataStore           datastore   = 2;
-    // the schema this datastore should comply with
-    schema.Schema       schema      = 3;
-     // south bound interface target of this datastore
-    Target              target      = 4;
-    // datastore sync strategy
-    Sync                sync        = 5;
+  // datastore name
+  string name          = 1;
+  // datastore type to be created
+  DataStore datastore  = 2;
+  // the schema this datastore should comply with
+  schema.Schema schema = 3;
+  // south bound interface target of this datastore
+  Target target        = 4;
+  // datastore sync strategy
+  Sync sync            = 5;
 }
 message CreateDataStoreResponse {}
 
 message DeleteDataStoreRequest {
-    // datastore name
-    string    name      = 1;
-    // datastore (to be deleted) type and name
-    DataStore datastore = 2;
+  // datastore name
+  string name         = 1;
+  // datastore (to be deleted) type and name
+  DataStore datastore = 2;
 }
 message DeleteDataStoreResponse {}
 
 message CommitRequest {
-    // datastore name
-    string      name      = 1;
-    // candidate name
-    DataStore   datastore = 2;
-    // rebase before commiting 
-    bool        rebase    = 3;
-    // do not delete the candidate after commiting
-    // reset changes and rebase after commiting
-    bool        stay      = 4;
+  // datastore name
+  string name         = 1;
+  // candidate name
+  DataStore datastore = 2;
+  // rebase before commiting
+  bool rebase         = 3;
+  // do not delete the candidate after commiting
+  // reset changes and rebase after commiting
+  bool stay           = 4;
 }
 message CommitResponse {}
 
-message RebaseRequest{
-    // datastore name
-    string      name      = 1;
-    // candidate name
-    DataStore   datastore = 2;
+message RebaseRequest {
+  // datastore name
+  string name         = 1;
+  // candidate name
+  DataStore datastore = 2;
 }
-message RebaseResponse{}
+message RebaseResponse {}
 
 message DiscardRequest {
-    // datastore name
-    string    name      = 1;
-    // candidate name to discard
-    DataStore datastore = 2;
-    // do not delete candidate after discarding changes
-    bool      stay      = 3;
+  // datastore name
+  string name         = 1;
+  // candidate name to discard
+  DataStore datastore = 2;
+  // do not delete candidate after discarding changes
+  bool stay           = 3;
 }
 message DiscardResponse {}
 
 message WatchRequest {
-    // datastore name
-    string         name = 1;
-    // watched objects
-    repeated Watch watch = 2;
+  // datastore name
+  string name          = 1;
+  // watched objects
+  repeated Watch watch = 2;
 }
 
-message WatchResponse {
-    Notification notification = 1;
-}
+message WatchResponse { Notification notification = 1; }
 
 message GetIntentRequest {
-    // datastore name
-    string name     = 1;
-    // intent name
-    string intent   = 2;
-    // intent priority
-    int32  priority = 3;
+  // datastore name
+  string name    = 1;
+  // intent name
+  string intent  = 2;
+  // intent priority
+  int32 priority = 3;
 }
 
 message GetIntentResponse {
-    // datastore name
-    string name   = 1;
-    // intent details
-    Intent intent = 2;
+  // datastore name
+  string name   = 1;
+  // intent details
+  Intent intent = 2;
 }
 
 message SetIntentRequest {
-    // datastore name
-    string          name   = 1;
-    // intent name
-    string          intent = 2;
-    // intent priority
-    int32  priority        = 3;
-    // list of updates
-    repeated Update update = 4;
-    // delete indicator
-    bool            delete = 5;
-    // dry run indicator
-    bool            dry_run = 6;
-    // delete only from intended store
-    // basically keeping the config on the device but unmanaged
-    bool            only_intended = 7;
+  // datastore name
+  string name            = 1;
+  // intent name
+  string intent          = 2;
+  // intent priority
+  int32 priority         = 3;
+  // list of updates
+  repeated Update update = 4;
+  // delete indicator
+  bool delete            = 5;
+  // dry run indicator
+  bool dry_run           = 6;
+  // delete only from intended store
+  // basically keeping the config on the device but unmanaged
+  bool only_intended     = 7;
 }
 
 message SetIntentResponse {
-    repeated Update         update = 1;
-    repeated schema.Path    delete = 2;
-    repeated string         warnings = 3;
+  repeated Update update             = 1;
+  repeated        schema.Path delete = 2;
+  repeated string warnings           = 3;
 }
 
-message ListIntentRequest{
-    // datastore name
-    string name      = 1;
+message ListIntentRequest {
+  // datastore name
+  string name = 1;
 }
-message ListIntentResponse{
-    string          name   = 1;
-    // list of intents without updates
-    repeated Intent intent = 2;
+message ListIntentResponse {
+  string name            = 1;
+  // list of intents without updates
+  repeated Intent intent = 2;
 }
 
 message WatchDeviationRequest {
-    // datastore name
-    repeated string name = 1;
+  // datastore name
+  repeated string name = 1;
 }
 
 message WatchDeviationResponse {
-    // datastore name
-    string          name            = 1;
-    string          intent          = 2;
-    DeviationEvent  event           = 3;
-    DeviationReason reason          = 4;
-    schema.Path     path            = 5;
-    TypedValue      expected_value  = 6;
-    TypedValue      current_value   = 7;
+  // datastore name
+  string          name           = 1;
+  string          intent         = 2;
+  DeviationEvent  event          = 3;
+  DeviationReason reason         = 4;
+  schema.Path     path           = 5;
+  TypedValue      expected_value = 6;
+  TypedValue      current_value  = 7;
 }
 
 enum DeviationEvent {
-    DE_UNKNOWN  = 0;
-    START       = 1;
-    END         = 2;
-    UPDATE      = 3;
-    CLEAR       = 4;
+  DE_UNKNOWN = 0;
+  START      = 1;
+  END        = 2;
+  UPDATE     = 3;
+  CLEAR      = 4;
 }
 
 enum DeviationReason {
-    DR_UNKNOWN  = 0;
-    UNHANDLED   = 1;
-    NOT_APPLIED = 2;
-    OVERRULED   = 3;   
+  DR_UNKNOWN  = 0;
+  UNHANDLED   = 1;
+  NOT_APPLIED = 2;
+  OVERRULED   = 3;
 }
 
 // sub messages
 message Update {
-    schema.Path path  = 1;
-    TypedValue  value = 2;
+  schema.Path path  = 1;
+  TypedValue  value = 2;
 }
 
 message DiffUpdate {
-    schema.Path path              = 1;
-    TypedValue  main_value        = 2;
-    TypedValue  candidate_value   = 3;
+  schema.Path path            = 1;
+  TypedValue  main_value      = 2;
+  TypedValue  candidate_value = 3;
 }
 
 message TypedValue {
-    uint64      timestamp            = 1;
-    oneof       value
-    {
-        string string_val            = 2;
-        int64 int_val                = 3;
-        uint64 uint_val              = 4;
-        bool bool_val                = 5;
-        bytes bytes_val              = 6;
-        float float_val              = 7;
-        Decimal64 decimal_val        = 8;
-        double Double_val            = 9;
-        ScalarArray leaflist_val     = 10;
-        google.protobuf.Any any_val  = 11;
-        bytes json_val               = 12;
-        bytes json_ietf_val          = 13;
-        string ascii_val             = 14;
-        bytes proto_bytes            = 15;
-    }
+  uint64 timestamp = 1;
+  oneof  value {
+    string              string_val    = 2;
+    int64               int_val       = 3;
+    uint64              uint_val      = 4;
+    bool                bool_val      = 5;
+    bytes               bytes_val     = 6;
+    float               float_val     = 7;
+    Decimal64           decimal_val   = 8;
+    double              Double_val    = 9;
+    ScalarArray         leaflist_val  = 10;
+    google.protobuf.Any any_val       = 11;
+    bytes               json_val      = 12;
+    bytes               json_ietf_val = 13;
+    string              ascii_val     = 14;
+    bytes               proto_bytes   = 15;
+  }
 }
 
 message UpdateResult {
@@ -340,50 +336,50 @@ message UpdateResult {
     REPLACE = 2; // The result relates to a replace of schema.Path.
     UPDATE  = 3; // The result relates to an update of schema.Path.
   }
-  schema.Path       path = 2; // schema.Path associated with the update.
-  Operation         op   = 4; // Update operation type.
+  schema.Path path = 2; // schema.Path associated with the update.
+  Operation   op   = 4; // Update operation type.
 }
 
 message Notification {
-    // Timestamp in nanoseconds since Epoch.
-    int64                timestamp  = 1;
-    // Data elements that have changed values.
-    repeated Update      update     = 4;
-    // Data elements that have been deleted.
-    repeated schema.Path delete     = 5;
+  // Timestamp in nanoseconds since Epoch.
+  int64 timestamp             = 1;
+  // Data elements that have changed values.
+  repeated Update update      = 4;
+  // Data elements that have been deleted.
+  repeated schema.Path delete = 5;
 }
 
 enum Type {
-    MAIN      = 0;
-    CANDIDATE = 1;
-    INTENDED  = 2;
+  MAIN      = 0;
+  CANDIDATE = 1;
+  INTENDED  = 2;
 }
 
 message DataStore {
-    // datastore type, MAIN, CANDIDATE or INTENDED
-    Type    type        = 1;
-    // name of the datastore (candidate)
-    string  name        = 2;
-    // candidate datastore owner
-    string  owner       = 3;
-    // candidate datastore priority
-    int32  priority     = 4;
+  // datastore type, MAIN, CANDIDATE or INTENDED
+  Type type      = 1;
+  // name of the datastore (candidate)
+  string name    = 2;
+  // candidate datastore owner
+  string owner   = 3;
+  // candidate datastore priority
+  int32 priority = 4;
 }
 
 // Decimal64 is used to encode a fixed precision decimal number. The value
 // is expressed as a set of digits with the precision specifying the
 // number of digits following the decimal point in the digit set.
 message Decimal64 {
-  int64  digits    = 1;         // Set of digits.
-  uint32 precision = 2;         // Number of digits following the decimal point.
+  int64  digits    = 1; // Set of digits.
+  uint32 precision = 2; // Number of digits following the decimal point.
 }
 
 // GetDataRequest encoding
 enum Encoding {
-    STRING    = 0;
-    JSON      = 1;
-    JSON_IETF = 2;
-    PROTO     = 3;
+  STRING    = 0;
+  JSON      = 1;
+  JSON_IETF = 2;
+  PROTO     = 3;
 }
 
 // ScalarArray is used to encode a mixed-type array of values.
@@ -396,122 +392,122 @@ message ScalarArray {
 
 // Southbound interface of the datastore
 message Target {
-    // target type: gnmi or netconf
-    string          type                      = 1;
-    // target address
-    string          address                   = 2;
-    // tls client certs, ca cert or skip_verify
-    TLS             tls                       = 3;
-    // target credentials
-    Credentials     credentials               = 4;
-    // for netconf targets:
-    // include namespace if a prefix is present 
-    // in the path elements.
-    bool            include_ns                = 5;
-    // for netconf targets:
-    // add base1.0 as ns for operation attribute.
-    bool            operation_with_ns         = 6;
-    // for netconf targets:
-    // use operation remove instead of delete when deleting.
-    bool            use_operation_remove      = 7;
-    // for netconf type, specifies which datastore to commit.
-    // Can be either `candidate` or `running`.
-    CommitCandidate          commit_candidate = 8;
-    // reflects the target connection status
-    TargetStatus    status                    = 9;
-    // if the status is NOT_CONNECTED, this fields might
-    // more details about the reason.
-    string          status_details            = 10;
+  // target type: gnmi or netconf
+  string type                      = 1;
+  // target address
+  string address                   = 2;
+  // tls client certs, ca cert or skip_verify
+  TLS tls                          = 3;
+  // target credentials
+  Credentials credentials          = 4;
+  // for netconf targets:
+  // include namespace if a prefix is present
+  // in the path elements.
+  bool include_ns                  = 5;
+  // for netconf targets:
+  // add base1.0 as ns for operation attribute.
+  bool operation_with_ns           = 6;
+  // for netconf targets:
+  // use operation remove instead of delete when deleting.
+  bool use_operation_remove        = 7;
+  // for netconf type, specifies which datastore to commit.
+  // Can be either `candidate` or `running`.
+  CommitCandidate commit_candidate = 8;
+  // reflects the target connection status
+  TargetStatus status              = 9;
+  // if the status is NOT_CONNECTED, this fields might
+  // more details about the reason.
+  string status_details            = 10;
 }
 
 enum TargetStatus {
-    UNKNOWN         = 0;
-    CONNECTED       = 1;
-    NOT_CONNECTED   = 2;
+  UNKNOWN       = 0;
+  CONNECTED     = 1;
+  NOT_CONNECTED = 2;
 }
 
 enum CommitCandidate {
-    COMMIT_CANDIDATE = 0;
-    COMMIT_RUNNING   = 1;
+  COMMIT_CANDIDATE = 0;
+  COMMIT_RUNNING   = 1;
 }
 
 // TLS Config
 message TLS {
-    string ca           = 1;
-    string cert         = 2;
-    string key          = 3;
-    bool   skip_verify  = 4;
+  string ca          = 1;
+  string cert        = 2;
+  string key         = 3;
+  bool   skip_verify = 4;
 }
 
 // Target Credentials
 message Credentials {
-    string username = 1;
-    string password = 2;
-    string token    = 3;
+  string username = 1;
+  string password = 2;
+  string token    = 3;
 }
 
 message Sync {
-    // if true, all received notifications 
-    // are validated agains the schema
-    bool                validate        = 1;
-    // number of notification to buffer while writing
-    // to cache
-    int64               buffer          = 2;
-    // number of cache writers
-    int64               write_workers   = 3;
-    // list of sync strategies
-    repeated SyncConfig config          = 4;
+  // if true, all received notifications
+  // are validated agains the schema
+  bool validate              = 1;
+  // number of notification to buffer while writing
+  // to cache
+  int64 buffer               = 2;
+  // number of cache writers
+  int64 write_workers        = 3;
+  // list of sync strategies
+  repeated SyncConfig config = 4;
 }
 
 message SyncConfig {
-    // sync routing name
-    string name = 1;
-    // paths to subscribe to
-    repeated string path = 2;
-    // gnmi only: mode, on-change, sample, or once
-    SyncMode mode = 3;
-    // gnmi only: encoding
-    string encoding = 4;
-    // interval for gNMI mode sample or once
-    // as well for netconf
-    uint64 interval = 5;
-    // protocol used to sync the config: gnmi or netconf
-    string protocol = 6;
+  // sync routing name
+  string name          = 1;
+  // paths to subscribe to
+  repeated string path = 2;
+  // gnmi only: mode, on-change, sample, or once
+  SyncMode mode        = 3;
+  // gnmi only: encoding
+  string encoding      = 4;
+  // interval for gNMI mode sample or once
+  // as well for netconf
+  uint64 interval      = 5;
+  // protocol used to sync the config: gnmi or netconf
+  string protocol      = 6;
 }
 
 enum SyncMode {
-    SM_ON_CHANGE = 0;
-    SM_SAMPLE    = 1;
-    SM_ONCE      = 2;
-    SM_GET       = 3;
+  SM_ON_CHANGE = 0;
+  SM_SAMPLE    = 1;
+  SM_ONCE      = 2;
+  SM_GET       = 3;
 }
 
 message Subscription {
-    // objects to subscribe to
-    repeated schema.Path path               = 1;
-    // data type config, state
-    schema.DataType      data_type          = 2;
-    // sample interval
-    uint64               sample_interval    = 3;
-    // suppress redandant.. this is probably not needed
-    bool                 suppress_redundant = 4;
+  // objects to subscribe to
+  repeated schema.Path path = 1;
+  // data type config, state
+  schema.DataType data_type = 2;
+  // sample interval
+  uint64 sample_interval    = 3;
+  // suppress redandant.. this is probably not needed
+  bool suppress_redundant   = 4;
 }
 
 message Watch {
-    // objects to watch, identified by a path.
-    repeated schema.Path path = 1;
-    // data type config, state
-    schema.DataType      data_type = 2;
-    // heartbeat interval after which the object
-    // data is sent to the watcher even if it did not change.
-    uint64               heartbeat_interval = 3;
+  // objects to watch, identified by a path.
+  repeated schema.Path path = 1;
+  // data type config, state
+  schema.DataType data_type = 2;
+  // heartbeat interval after which the object
+  // data is sent to the watcher even if it did not change.
+  uint64 heartbeat_interval = 3;
 }
 
 message Intent {
-    // intent name
-    string          intent = 1;
-    // intent priority
-    int32           priority = 2;
-    // list of updates
-    repeated Update update = 3;
+  // intent name
+  string intent          = 1;
+  // intent priority
+  int32 priority         = 2;
+  // list of updates
+  repeated Update update = 3;
 }
