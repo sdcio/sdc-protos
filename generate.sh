@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+clang-format -i -style=file:clang-format.style schema.proto
+clang-format -i -style=file:clang-format.style data.proto
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
