@@ -223,21 +223,16 @@ message LeafSchema {
 }
 
 message SchemaLeafType {
-  string                                        type                = 1;
-  repeated SchemaMinMaxType                     range               = 2;
-  repeated SchemaMinMaxType                     length              = 3;
-  repeated string                               values              = 4;
-  string                                        units               = 5;
-  string                                        type_name           = 6;
-  string                                        leafref             = 7;
-  repeated SchemaPattern                        patterns            = 9;
-  repeated SchemaLeafType                       union_types         = 10;
-  map<string, SchemaLeafTypePossibleIdentities> possible_identities = 11;
-}
-
-message SchemaLeafTypePossibleIdentities {
-  string prefix = 1;
-  string name   = 2;
+  string                    type                  = 1;
+  repeated SchemaMinMaxType range                 = 2;
+  repeated SchemaMinMaxType length                = 3;
+  repeated string           enum_names            = 4;
+  string                    units                 = 5;
+  string                    type_name             = 6;
+  string                    leafref               = 7;
+  repeated SchemaPattern    patterns              = 9;
+  repeated SchemaLeafType   union_types           = 10;
+  map<string, string>       identity_prefixes_map = 11;
 }
 
 message MustStatement {
