@@ -398,6 +398,8 @@ message Target {
   string type                      = 1;
   // target address
   string address                   = 2;
+  // per protocol ports
+  map<string, int32> ports         = 12;
   // tls client certs, ca cert or skip_verify
   TLS tls                          = 3;
   // target credentials
@@ -420,6 +422,8 @@ message Target {
   // if the status is NOT_CONNECTED, this fields might
   // more details about the reason.
   string status_details            = 10;
+  // for gnmi targets
+  string encoding                  = 11;
 }
 
 enum TargetStatus {
