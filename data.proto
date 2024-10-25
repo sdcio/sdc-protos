@@ -392,18 +392,7 @@ message ScalarArray {
   repeated TypedValue element = 1;
 }
 
-// Southbound interface of the datastore
-message Target {
-  // target type: gnmi or netconf
-  string type                      = 1;
-  // target address
-  string address                   = 2;
-  // per protocol ports
-  map<string, int32> ports         = 12;
-  // tls client certs, ca cert or skip_verify
-  TLS tls                          = 3;
-  // target credentials
-  Credentials credentials          = 4;
+message NetconfOptions {
   // for netconf targets:
   // include namespace if a prefix is present
   // in the path elements.
@@ -417,13 +406,35 @@ message Target {
   // for netconf type, specifies which datastore to commit.
   // Can be either `candidate` or `running`.
   CommitCandidate commit_candidate = 8;
+}
+
+message GnmiOptions {
+  // for gnmi targets
+  string encoding = 11;
+}
+
+// Southbound interface of the datastore
+message Target {
+  // target type: gnmi or netconf
+  string type             = 1;
+  // target address
+  string address          = 2;
+  // per protocol ports
+  uint32 port             = 12;
+  // tls client certs, ca cert or skip_verify
+  TLS tls                 = 3;
+  // target credentials
+  Credentials credentials = 4;
+  // protocol options
+  oneof protocolOptions {
+    GnmiOptions    gnmi_opts    = 5;
+    NetconfOptions netconf_opts = 6;
+  }
   // reflects the target connection status
-  TargetStatus status              = 9;
+  TargetStatus status   = 9;
   // if the status is NOT_CONNECTED, this fields might
   // more details about the reason.
-  string status_details            = 10;
-  // for gnmi targets
-  string encoding                  = 11;
+  string status_details = 10;
 }
 
 enum TargetStatus {
@@ -468,17 +479,14 @@ message Sync {
 message SyncConfig {
   // sync routing name
   string name          = 1;
+  Target target        = 2;
   // paths to subscribe to
-  repeated string path = 2;
+  repeated string path = 3;
   // gnmi only: mode, on-change, sample, or once
-  SyncMode mode        = 3;
-  // gnmi only: encoding
-  string encoding      = 4;
+  SyncMode mode        = 4;
   // interval for gNMI mode sample or once
   // as well for netconf
   uint64 interval      = 5;
-  // protocol used to sync the config: gnmi or netconf
-  string protocol      = 6;
 }
 
 enum SyncMode {
