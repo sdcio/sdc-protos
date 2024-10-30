@@ -169,6 +169,8 @@ message ContainerSchema {
 
   repeated MustStatement must_statements     = 11;
 
+  string module_name                         = 12;
+
   uint64 max_elements                        = 13;
   uint64 min_elements                        = 14;
 
@@ -190,6 +192,7 @@ message LeafListSchema {
   SchemaLeafType type                    = 6;
   bool           encrypted               = 7;
 
+  string                 module_name     = 8;
   string                 units           = 9;
   repeated MustStatement must_statements = 11;
   repeated string        defaults        = 12;
@@ -213,6 +216,8 @@ message LeafSchema {
   bool   is_mandatory                    = 8;
   string units                           = 9;
 
+  string module_name                     = 10;
+
   repeated MustStatement must_statements = 11;
   string default                         = 12;
 
@@ -233,6 +238,7 @@ message SchemaLeafType {
   repeated SchemaPattern    patterns              = 9;
   repeated SchemaLeafType   union_types           = 10;
   map<string, string>       identity_prefixes_map = 11;
+  map<string, string>       module_prefix_map     = 12;
 }
 
 message MustStatement {

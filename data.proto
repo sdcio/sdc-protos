@@ -312,22 +312,29 @@ message DiffUpdate {
 message TypedValue {
   uint64 timestamp = 1;
   oneof  value {
-    string                string_val    = 2;
-    int64                 int_val       = 3;
-    uint64                uint_val      = 4;
-    bool                  bool_val      = 5;
-    bytes                 bytes_val     = 6;
-    float                 float_val     = 7;
-    Decimal64             decimal_val   = 8;
-    double                Double_val    = 9;
-    ScalarArray           leaflist_val  = 10;
-    google.protobuf.Any   any_val       = 11;
-    bytes                 json_val      = 12;
-    bytes                 json_ietf_val = 13;
-    string                ascii_val     = 14;
-    bytes                 proto_bytes   = 15;
-    google.protobuf.Empty empty_val     = 16;
+    string                string_val      = 2;
+    int64                 int_val         = 3;
+    uint64                uint_val        = 4;
+    bool                  bool_val        = 5;
+    bytes                 bytes_val       = 6;
+    float                 float_val       = 7;
+    Decimal64             decimal_val     = 8;
+    double                Double_val      = 9;
+    ScalarArray           leaflist_val    = 10;
+    google.protobuf.Any   any_val         = 11;
+    bytes                 json_val        = 12;
+    bytes                 json_ietf_val   = 13;
+    string                ascii_val       = 14;
+    bytes                 proto_bytes     = 15;
+    google.protobuf.Empty empty_val       = 16;
+    IdentityRef           identityref_val = 17;
   }
+}
+
+message IdentityRef {
+  string value  = 1;
+  string prefix = 2;
+  string module = 3;
 }
 
 message UpdateResult {
@@ -392,16 +399,7 @@ message ScalarArray {
   repeated TypedValue element = 1;
 }
 
-// Southbound interface of the datastore
-message Target {
-  // target type: gnmi or netconf
-  string type                      = 1;
-  // target address
-  string address                   = 2;
-  // tls client certs, ca cert or skip_verify
-  TLS tls                          = 3;
-  // target credentials
-  Credentials credentials          = 4;
+message NetconfOptions {
   // for netconf targets:
   // include namespace if a prefix is present
   // in the path elements.
@@ -415,11 +413,35 @@ message Target {
   // for netconf type, specifies which datastore to commit.
   // Can be either `candidate` or `running`.
   CommitCandidate commit_candidate = 8;
+}
+
+message GnmiOptions {
+  // for gnmi targets
+  string encoding = 11;
+}
+
+// Southbound interface of the datastore
+message Target {
+  // target type: gnmi or netconf
+  string type             = 1;
+  // target address
+  string address          = 2;
+  // per protocol ports
+  uint32 port             = 12;
+  // tls client certs, ca cert or skip_verify
+  TLS tls                 = 3;
+  // target credentials
+  Credentials credentials = 4;
+  // protocol options
+  oneof protocolOptions {
+    GnmiOptions    gnmi_opts    = 5;
+    NetconfOptions netconf_opts = 6;
+  }
   // reflects the target connection status
-  TargetStatus status              = 9;
+  TargetStatus status   = 9;
   // if the status is NOT_CONNECTED, this fields might
   // more details about the reason.
-  string status_details            = 10;
+  string status_details = 10;
 }
 
 enum TargetStatus {
@@ -464,17 +486,14 @@ message Sync {
 message SyncConfig {
   // sync routing name
   string name          = 1;
+  Target target        = 2;
   // paths to subscribe to
-  repeated string path = 2;
+  repeated string path = 3;
   // gnmi only: mode, on-change, sample, or once
-  SyncMode mode        = 3;
-  // gnmi only: encoding
-  string encoding      = 4;
+  SyncMode mode        = 4;
   // interval for gNMI mode sample or once
   // as well for netconf
   uint64 interval      = 5;
-  // protocol used to sync the config: gnmi or netconf
-  string protocol      = 6;
 }
 
 enum SyncMode {
