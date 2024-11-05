@@ -239,6 +239,7 @@ message SchemaLeafType {
   repeated SchemaLeafType   union_types           = 10;
   map<string, string>       identity_prefixes_map = 11;
   map<string, string>       module_prefix_map     = 12;
+  SchemaLeafType            leafref_target_type   = 13;
 }
 
 message MustStatement {
