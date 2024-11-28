@@ -165,7 +165,7 @@ message ContainerSchema {
   repeated LeafSchema     fields             = 7;
   repeated LeafListSchema leaflists          = 8;
   repeated string         children           = 9;
-  repeated string         mandatory_children = 10;
+  repeated MandatoryChild mandatory_children = 10;
 
   repeated MustStatement must_statements     = 11;
 
@@ -180,6 +180,11 @@ message ContainerSchema {
   repeated string if_feature                 = 23;
 
   ChoiceInfo choice_info                     = 30;
+}
+
+message MandatoryChild {
+  string name     = 1;
+  bool   is_state = 2;
 }
 
 message LeafListSchema {
