@@ -233,18 +233,21 @@ message LeafSchema {
 }
 
 message SchemaLeafType {
-  string                    type                  = 1;
-  repeated SchemaMinMaxType range                 = 2;
-  repeated SchemaMinMaxType length                = 3;
-  repeated string           enum_names            = 4;
-  string                    units                 = 5;
-  string                    type_name             = 6;
-  string                    leafref               = 7;
-  repeated SchemaPattern    patterns              = 9;
-  repeated SchemaLeafType   union_types           = 10;
-  map<string, string>       identity_prefixes_map = 11;
-  map<string, string>       module_prefix_map     = 12;
-  SchemaLeafType            leafref_target_type   = 13;
+  string                    type                = 1;
+  repeated SchemaMinMaxType range               = 2;
+  repeated SchemaMinMaxType length              = 3;
+  repeated string           enum_names          = 4;
+  string                    units               = 5;
+  string                    type_name           = 6;
+  string                    leafref             = 7;
+  // optional_instance defines for a leafref if the referenced leaf needs to
+  // exist or not.
+  bool                    optional_instance     = 8;
+  repeated SchemaPattern  patterns              = 9;
+  repeated SchemaLeafType union_types           = 10;
+  map<string, string>     identity_prefixes_map = 11;
+  map<string, string>     module_prefix_map     = 12;
+  SchemaLeafType          leafref_target_type   = 13;
 }
 
 message MustStatement {
