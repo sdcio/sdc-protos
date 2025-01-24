@@ -254,7 +254,7 @@ message SetIntentRequest {
   bool dry_run           = 6;
   // delete only from intended store
   // basically keeping the config on the device but unmanaged
-  bool only_intended     = 7;
+  bool orphan            = 7;
 }
 
 message SetIntentResponse {
