@@ -290,7 +290,7 @@ message TransactionIntent {
   bool delete            = 4;
   // delete only from intended store
   // basically keeping the config on the device but unmanaged
-  bool only_intended     = 5;
+  bool orphan            = 5;
 }
 
 message TransactionSetResponse {
