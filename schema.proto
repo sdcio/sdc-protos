@@ -171,8 +171,9 @@ message ContainerSchema {
 
   string module_name                         = 12;
 
-  uint64 max_elements                        = 13;
-  uint64 min_elements                        = 14;
+  uint64          max_elements               = 13;
+  uint64          min_elements               = 14;
+  repeated string childs_with_defaults       = 15;
 
   bool            is_presence                = 20;
   bool            is_state                   = 21;
