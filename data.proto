@@ -42,9 +42,6 @@ service DataServer {
   // retrieve data from a MAIN or CANDIDATE datastore, the data is specified
   // with a set of schema.prot.Path
   rpc GetData(GetDataRequest) returns (stream GetDataResponse);
-  // writes changes to a CANDIDATE datastore,
-  // validates the values written against the datastore schema.
-  rpc SetData(SetDataRequest) returns (SetDataResponse);
   // returns a list of difference between a CANDIDATE datastore and its base
   rpc Diff(DiffRequest) returns (DiffResponse);
   // subscribes for notification from a MAIN datastore,
@@ -59,6 +56,15 @@ service DataServer {
   rpc GetIntent(GetIntentRequest) returns (GetIntentResponse);
   // applies an intent to the specified datastore
   rpc SetIntent(SetIntentRequest) returns (SetIntentResponse);
+  // Start a transaction
+  rpc TransactionSet(TransactionSetRequest) returns (TransactionSetResponse);
+  // Confirm the transaction
+  rpc TransactionConfirm(TransactionConfirmRequest)
+      returns (TransactionConfirmResponse);
+  // Cancel and thereby rollback the transaction
+  rpc TransactionCancel(TransactionCancelRequest)
+      returns (TransactionCancelResponse);
+
   // list intents for a given datastore (name and priority)
   rpc ListIntent(ListIntentRequest) returns (ListIntentResponse);
 
@@ -67,6 +73,7 @@ service DataServer {
 }
 
 // messages
+
 message GetDataRequest {
   // data store name
   string name               = 1;
@@ -247,14 +254,72 @@ message SetIntentRequest {
   bool dry_run           = 6;
   // delete only from intended store
   // basically keeping the config on the device but unmanaged
-  bool only_intended     = 7;
+  bool orphan            = 7;
 }
 
 message SetIntentResponse {
   repeated Update update             = 1;
   repeated        schema.Path delete = 2;
   repeated string warnings           = 3;
+  repeated string errors             = 4;
 }
+
+message TransactionSetRequest {
+  // Transaction ID
+  string transaction_id                     = 1;
+  // datastore name
+  string datastore_name                     = 2;
+  // dry run indicator
+  bool dry_run                              = 3;
+  // optional timeout, seconds how long Transaction remains active
+  // before being auto-canceled if not commited before
+  optional int32 timeout                    = 4;
+  // list of intents that make up the transaction
+  repeated TransactionIntent intents        = 5;
+  TransactionIntent          replace_intent = 6;
+}
+
+message TransactionIntent {
+  // intent name
+  string intent          = 1;
+  // intent priority
+  int32 priority         = 2;
+  // list of updates
+  repeated Update update = 3;
+  // delete indicator
+  bool delete            = 4;
+  // delete only from intended store
+  // basically keeping the config on the device but unmanaged
+  bool orphan            = 5;
+}
+
+message TransactionSetResponse {
+  repeated Update                           update             = 1;
+  repeated                                  schema.Path delete = 2;
+  map<string, TransactionSetResponseIntent> intents            = 3;
+  repeated string                           warnings           = 4;
+}
+
+message TransactionSetResponseIntent {
+  repeated string warnings = 1;
+  repeated string errors   = 2;
+}
+
+message TransactionCancelRequest {
+  // datastore name
+  string datastore_name = 1;
+  // Transaction ID
+  string transaction_id = 2;
+}
+message TransactionCancelResponse {}
+
+message TransactionConfirmRequest {
+  // datastore name
+  string datastore_name = 1;
+  // Transaction ID
+  string transaction_id = 2;
+}
+message TransactionConfirmResponse {}
 
 message ListIntentRequest {
   // datastore name
