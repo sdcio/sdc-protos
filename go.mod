@@ -1,11 +1,11 @@
 module github.com/sdcio/sdc-protos
 
 go 1.22
-toolchain go1.22.8
+toolchain go1.24.1
 
 require (
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.4
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
