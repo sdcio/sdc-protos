@@ -37,19 +37,11 @@ const (
 	DataServer_GetDataStore_FullMethodName       = "/data.DataServer/GetDataStore"
 	DataServer_CreateDataStore_FullMethodName    = "/data.DataServer/CreateDataStore"
 	DataServer_DeleteDataStore_FullMethodName    = "/data.DataServer/DeleteDataStore"
-	DataServer_Commit_FullMethodName             = "/data.DataServer/Commit"
-	DataServer_Rebase_FullMethodName             = "/data.DataServer/Rebase"
-	DataServer_Discard_FullMethodName            = "/data.DataServer/Discard"
-	DataServer_GetData_FullMethodName            = "/data.DataServer/GetData"
-	DataServer_Diff_FullMethodName               = "/data.DataServer/Diff"
-	DataServer_Subscribe_FullMethodName          = "/data.DataServer/Subscribe"
-	DataServer_Watch_FullMethodName              = "/data.DataServer/Watch"
-	DataServer_GetIntent_FullMethodName          = "/data.DataServer/GetIntent"
-	DataServer_SetIntent_FullMethodName          = "/data.DataServer/SetIntent"
 	DataServer_TransactionSet_FullMethodName     = "/data.DataServer/TransactionSet"
 	DataServer_TransactionConfirm_FullMethodName = "/data.DataServer/TransactionConfirm"
 	DataServer_TransactionCancel_FullMethodName  = "/data.DataServer/TransactionCancel"
 	DataServer_ListIntent_FullMethodName         = "/data.DataServer/ListIntent"
+	DataServer_GetIntent_FullMethodName          = "/data.DataServer/GetIntent"
 	DataServer_WatchDeviations_FullMethodName    = "/data.DataServer/WatchDeviations"
 )
 
@@ -65,29 +57,6 @@ type DataServerClient interface {
 	CreateDataStore(ctx context.Context, in *CreateDataStoreRequest, opts ...grpc.CallOption) (*CreateDataStoreResponse, error)
 	// deletes a datastore, either a MAIN or a CANDIDATE datastore
 	DeleteDataStore(ctx context.Context, in *DeleteDataStoreRequest, opts ...grpc.CallOption) (*DeleteDataStoreResponse, error)
-	// commits changes in a CANDIDATE datastore to the datastore Target
-	Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*CommitResponse, error)
-	// rebases a CANDIDATE datastore
-	Rebase(ctx context.Context, in *RebaseRequest, opts ...grpc.CallOption) (*RebaseResponse, error)
-	// discards changes made to a CANDIDATE datastore
-	Discard(ctx context.Context, in *DiscardRequest, opts ...grpc.CallOption) (*DiscardResponse, error)
-	// data
-	// retrieve data from a MAIN or CANDIDATE datastore, the data is specified
-	// with a set of schema.prot.Path
-	GetData(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetDataResponse], error)
-	// returns a list of difference between a CANDIDATE datastore and its base
-	Diff(ctx context.Context, in *DiffRequest, opts ...grpc.CallOption) (*DiffResponse, error)
-	// subscribes for notification from a MAIN datastore,
-	// the client specified a list of paths it is interested on as well as
-	// a sample interval.
-	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SubscribeResponse], error)
-	// watches a set of paths, returns the values each path points at if the value
-	// changes.
-	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchResponse], error)
-	// returns an intent details: name, priority and list of updates
-	GetIntent(ctx context.Context, in *GetIntentRequest, opts ...grpc.CallOption) (*GetIntentResponse, error)
-	// applies an intent to the specified datastore
-	SetIntent(ctx context.Context, in *SetIntentRequest, opts ...grpc.CallOption) (*SetIntentResponse, error)
 	// Start a transaction
 	TransactionSet(ctx context.Context, in *TransactionSetRequest, opts ...grpc.CallOption) (*TransactionSetResponse, error)
 	// Confirm the transaction
@@ -96,6 +65,7 @@ type DataServerClient interface {
 	TransactionCancel(ctx context.Context, in *TransactionCancelRequest, opts ...grpc.CallOption) (*TransactionCancelResponse, error)
 	// list intents for a given datastore (name and priority)
 	ListIntent(ctx context.Context, in *ListIntentRequest, opts ...grpc.CallOption) (*ListIntentResponse, error)
+	GetIntent(ctx context.Context, in *GetIntentRequest, opts ...grpc.CallOption) (*GetIntentResponse, error)
 	WatchDeviations(ctx context.Context, in *WatchDeviationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchDeviationResponse], error)
 }
 
@@ -147,123 +117,6 @@ func (c *dataServerClient) DeleteDataStore(ctx context.Context, in *DeleteDataSt
 	return out, nil
 }
 
-func (c *dataServerClient) Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*CommitResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CommitResponse)
-	err := c.cc.Invoke(ctx, DataServer_Commit_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dataServerClient) Rebase(ctx context.Context, in *RebaseRequest, opts ...grpc.CallOption) (*RebaseResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RebaseResponse)
-	err := c.cc.Invoke(ctx, DataServer_Rebase_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dataServerClient) Discard(ctx context.Context, in *DiscardRequest, opts ...grpc.CallOption) (*DiscardResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DiscardResponse)
-	err := c.cc.Invoke(ctx, DataServer_Discard_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dataServerClient) GetData(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetDataResponse], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[0], DataServer_GetData_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[GetDataRequest, GetDataResponse]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type DataServer_GetDataClient = grpc.ServerStreamingClient[GetDataResponse]
-
-func (c *dataServerClient) Diff(ctx context.Context, in *DiffRequest, opts ...grpc.CallOption) (*DiffResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DiffResponse)
-	err := c.cc.Invoke(ctx, DataServer_Diff_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dataServerClient) Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SubscribeResponse], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[1], DataServer_Subscribe_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[SubscribeRequest, SubscribeResponse]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type DataServer_SubscribeClient = grpc.ServerStreamingClient[SubscribeResponse]
-
-func (c *dataServerClient) Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchResponse], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[2], DataServer_Watch_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[WatchRequest, WatchResponse]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type DataServer_WatchClient = grpc.ServerStreamingClient[WatchResponse]
-
-func (c *dataServerClient) GetIntent(ctx context.Context, in *GetIntentRequest, opts ...grpc.CallOption) (*GetIntentResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetIntentResponse)
-	err := c.cc.Invoke(ctx, DataServer_GetIntent_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dataServerClient) SetIntent(ctx context.Context, in *SetIntentRequest, opts ...grpc.CallOption) (*SetIntentResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetIntentResponse)
-	err := c.cc.Invoke(ctx, DataServer_SetIntent_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *dataServerClient) TransactionSet(ctx context.Context, in *TransactionSetRequest, opts ...grpc.CallOption) (*TransactionSetResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TransactionSetResponse)
@@ -304,9 +157,19 @@ func (c *dataServerClient) ListIntent(ctx context.Context, in *ListIntentRequest
 	return out, nil
 }
 
+func (c *dataServerClient) GetIntent(ctx context.Context, in *GetIntentRequest, opts ...grpc.CallOption) (*GetIntentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetIntentResponse)
+	err := c.cc.Invoke(ctx, DataServer_GetIntent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dataServerClient) WatchDeviations(ctx context.Context, in *WatchDeviationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchDeviationResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[3], DataServer_WatchDeviations_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &DataServer_ServiceDesc.Streams[0], DataServer_WatchDeviations_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -335,29 +198,6 @@ type DataServerServer interface {
 	CreateDataStore(context.Context, *CreateDataStoreRequest) (*CreateDataStoreResponse, error)
 	// deletes a datastore, either a MAIN or a CANDIDATE datastore
 	DeleteDataStore(context.Context, *DeleteDataStoreRequest) (*DeleteDataStoreResponse, error)
-	// commits changes in a CANDIDATE datastore to the datastore Target
-	Commit(context.Context, *CommitRequest) (*CommitResponse, error)
-	// rebases a CANDIDATE datastore
-	Rebase(context.Context, *RebaseRequest) (*RebaseResponse, error)
-	// discards changes made to a CANDIDATE datastore
-	Discard(context.Context, *DiscardRequest) (*DiscardResponse, error)
-	// data
-	// retrieve data from a MAIN or CANDIDATE datastore, the data is specified
-	// with a set of schema.prot.Path
-	GetData(*GetDataRequest, grpc.ServerStreamingServer[GetDataResponse]) error
-	// returns a list of difference between a CANDIDATE datastore and its base
-	Diff(context.Context, *DiffRequest) (*DiffResponse, error)
-	// subscribes for notification from a MAIN datastore,
-	// the client specified a list of paths it is interested on as well as
-	// a sample interval.
-	Subscribe(*SubscribeRequest, grpc.ServerStreamingServer[SubscribeResponse]) error
-	// watches a set of paths, returns the values each path points at if the value
-	// changes.
-	Watch(*WatchRequest, grpc.ServerStreamingServer[WatchResponse]) error
-	// returns an intent details: name, priority and list of updates
-	GetIntent(context.Context, *GetIntentRequest) (*GetIntentResponse, error)
-	// applies an intent to the specified datastore
-	SetIntent(context.Context, *SetIntentRequest) (*SetIntentResponse, error)
 	// Start a transaction
 	TransactionSet(context.Context, *TransactionSetRequest) (*TransactionSetResponse, error)
 	// Confirm the transaction
@@ -366,6 +206,7 @@ type DataServerServer interface {
 	TransactionCancel(context.Context, *TransactionCancelRequest) (*TransactionCancelResponse, error)
 	// list intents for a given datastore (name and priority)
 	ListIntent(context.Context, *ListIntentRequest) (*ListIntentResponse, error)
+	GetIntent(context.Context, *GetIntentRequest) (*GetIntentResponse, error)
 	WatchDeviations(*WatchDeviationRequest, grpc.ServerStreamingServer[WatchDeviationResponse]) error
 	mustEmbedUnimplementedDataServerServer()
 }
@@ -389,33 +230,6 @@ func (UnimplementedDataServerServer) CreateDataStore(context.Context, *CreateDat
 func (UnimplementedDataServerServer) DeleteDataStore(context.Context, *DeleteDataStoreRequest) (*DeleteDataStoreResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDataStore not implemented")
 }
-func (UnimplementedDataServerServer) Commit(context.Context, *CommitRequest) (*CommitResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Commit not implemented")
-}
-func (UnimplementedDataServerServer) Rebase(context.Context, *RebaseRequest) (*RebaseResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Rebase not implemented")
-}
-func (UnimplementedDataServerServer) Discard(context.Context, *DiscardRequest) (*DiscardResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Discard not implemented")
-}
-func (UnimplementedDataServerServer) GetData(*GetDataRequest, grpc.ServerStreamingServer[GetDataResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method GetData not implemented")
-}
-func (UnimplementedDataServerServer) Diff(context.Context, *DiffRequest) (*DiffResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Diff not implemented")
-}
-func (UnimplementedDataServerServer) Subscribe(*SubscribeRequest, grpc.ServerStreamingServer[SubscribeResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
-}
-func (UnimplementedDataServerServer) Watch(*WatchRequest, grpc.ServerStreamingServer[WatchResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
-}
-func (UnimplementedDataServerServer) GetIntent(context.Context, *GetIntentRequest) (*GetIntentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetIntent not implemented")
-}
-func (UnimplementedDataServerServer) SetIntent(context.Context, *SetIntentRequest) (*SetIntentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetIntent not implemented")
-}
 func (UnimplementedDataServerServer) TransactionSet(context.Context, *TransactionSetRequest) (*TransactionSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TransactionSet not implemented")
 }
@@ -427,6 +241,9 @@ func (UnimplementedDataServerServer) TransactionCancel(context.Context, *Transac
 }
 func (UnimplementedDataServerServer) ListIntent(context.Context, *ListIntentRequest) (*ListIntentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListIntent not implemented")
+}
+func (UnimplementedDataServerServer) GetIntent(context.Context, *GetIntentRequest) (*GetIntentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIntent not implemented")
 }
 func (UnimplementedDataServerServer) WatchDeviations(*WatchDeviationRequest, grpc.ServerStreamingServer[WatchDeviationResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method WatchDeviations not implemented")
@@ -524,147 +341,6 @@ func _DataServer_DeleteDataStore_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DataServer_Commit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommitRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataServerServer).Commit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataServer_Commit_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServerServer).Commit(ctx, req.(*CommitRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DataServer_Rebase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RebaseRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataServerServer).Rebase(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataServer_Rebase_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServerServer).Rebase(ctx, req.(*RebaseRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DataServer_Discard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DiscardRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataServerServer).Discard(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataServer_Discard_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServerServer).Discard(ctx, req.(*DiscardRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DataServer_GetData_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetDataRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(DataServerServer).GetData(m, &grpc.GenericServerStream[GetDataRequest, GetDataResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type DataServer_GetDataServer = grpc.ServerStreamingServer[GetDataResponse]
-
-func _DataServer_Diff_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DiffRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataServerServer).Diff(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataServer_Diff_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServerServer).Diff(ctx, req.(*DiffRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DataServer_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(SubscribeRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(DataServerServer).Subscribe(m, &grpc.GenericServerStream[SubscribeRequest, SubscribeResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type DataServer_SubscribeServer = grpc.ServerStreamingServer[SubscribeResponse]
-
-func _DataServer_Watch_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(WatchRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(DataServerServer).Watch(m, &grpc.GenericServerStream[WatchRequest, WatchResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type DataServer_WatchServer = grpc.ServerStreamingServer[WatchResponse]
-
-func _DataServer_GetIntent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetIntentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataServerServer).GetIntent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataServer_GetIntent_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServerServer).GetIntent(ctx, req.(*GetIntentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DataServer_SetIntent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetIntentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataServerServer).SetIntent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataServer_SetIntent_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServerServer).SetIntent(ctx, req.(*SetIntentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _DataServer_TransactionSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TransactionSetRequest)
 	if err := dec(in); err != nil {
@@ -737,6 +413,24 @@ func _DataServer_ListIntent_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DataServer_GetIntent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIntentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServerServer).GetIntent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DataServer_GetIntent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServerServer).GetIntent(ctx, req.(*GetIntentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DataServer_WatchDeviations_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(WatchDeviationRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -772,30 +466,6 @@ var DataServer_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DataServer_DeleteDataStore_Handler,
 		},
 		{
-			MethodName: "Commit",
-			Handler:    _DataServer_Commit_Handler,
-		},
-		{
-			MethodName: "Rebase",
-			Handler:    _DataServer_Rebase_Handler,
-		},
-		{
-			MethodName: "Discard",
-			Handler:    _DataServer_Discard_Handler,
-		},
-		{
-			MethodName: "Diff",
-			Handler:    _DataServer_Diff_Handler,
-		},
-		{
-			MethodName: "GetIntent",
-			Handler:    _DataServer_GetIntent_Handler,
-		},
-		{
-			MethodName: "SetIntent",
-			Handler:    _DataServer_SetIntent_Handler,
-		},
-		{
 			MethodName: "TransactionSet",
 			Handler:    _DataServer_TransactionSet_Handler,
 		},
@@ -811,23 +481,12 @@ var DataServer_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ListIntent",
 			Handler:    _DataServer_ListIntent_Handler,
 		},
+		{
+			MethodName: "GetIntent",
+			Handler:    _DataServer_GetIntent_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetData",
-			Handler:       _DataServer_GetData_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "Subscribe",
-			Handler:       _DataServer_Subscribe_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "Watch",
-			Handler:       _DataServer_Watch_Handler,
-			ServerStreams: true,
-		},
 		{
 			StreamName:    "WatchDeviations",
 			Handler:       _DataServer_WatchDeviations_Handler,
