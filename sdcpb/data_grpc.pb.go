@@ -43,6 +43,7 @@ const (
 	DataServer_ListIntent_FullMethodName         = "/data.DataServer/ListIntent"
 	DataServer_GetIntent_FullMethodName          = "/data.DataServer/GetIntent"
 	DataServer_WatchDeviations_FullMethodName    = "/data.DataServer/WatchDeviations"
+	DataServer_BlameConfig_FullMethodName        = "/data.DataServer/BlameConfig"
 )
 
 // DataServerClient is the client API for DataServer service.
@@ -67,6 +68,7 @@ type DataServerClient interface {
 	ListIntent(ctx context.Context, in *ListIntentRequest, opts ...grpc.CallOption) (*ListIntentResponse, error)
 	GetIntent(ctx context.Context, in *GetIntentRequest, opts ...grpc.CallOption) (*GetIntentResponse, error)
 	WatchDeviations(ctx context.Context, in *WatchDeviationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchDeviationResponse], error)
+	BlameConfig(ctx context.Context, in *BlameConfigRequest, opts ...grpc.CallOption) (*BlameConfigResponse, error)
 }
 
 type dataServerClient struct {
@@ -186,6 +188,16 @@ func (c *dataServerClient) WatchDeviations(ctx context.Context, in *WatchDeviati
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type DataServer_WatchDeviationsClient = grpc.ServerStreamingClient[WatchDeviationResponse]
 
+func (c *dataServerClient) BlameConfig(ctx context.Context, in *BlameConfigRequest, opts ...grpc.CallOption) (*BlameConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BlameConfigResponse)
+	err := c.cc.Invoke(ctx, DataServer_BlameConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DataServerServer is the server API for DataServer service.
 // All implementations must embed UnimplementedDataServerServer
 // for forward compatibility.
@@ -208,6 +220,7 @@ type DataServerServer interface {
 	ListIntent(context.Context, *ListIntentRequest) (*ListIntentResponse, error)
 	GetIntent(context.Context, *GetIntentRequest) (*GetIntentResponse, error)
 	WatchDeviations(*WatchDeviationRequest, grpc.ServerStreamingServer[WatchDeviationResponse]) error
+	BlameConfig(context.Context, *BlameConfigRequest) (*BlameConfigResponse, error)
 	mustEmbedUnimplementedDataServerServer()
 }
 
@@ -247,6 +260,9 @@ func (UnimplementedDataServerServer) GetIntent(context.Context, *GetIntentReques
 }
 func (UnimplementedDataServerServer) WatchDeviations(*WatchDeviationRequest, grpc.ServerStreamingServer[WatchDeviationResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method WatchDeviations not implemented")
+}
+func (UnimplementedDataServerServer) BlameConfig(context.Context, *BlameConfigRequest) (*BlameConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BlameConfig not implemented")
 }
 func (UnimplementedDataServerServer) mustEmbedUnimplementedDataServerServer() {}
 func (UnimplementedDataServerServer) testEmbeddedByValue()                    {}
@@ -442,6 +458,24 @@ func _DataServer_WatchDeviations_Handler(srv interface{}, stream grpc.ServerStre
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type DataServer_WatchDeviationsServer = grpc.ServerStreamingServer[WatchDeviationResponse]
 
+func _DataServer_BlameConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlameConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServerServer).BlameConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DataServer_BlameConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServerServer).BlameConfig(ctx, req.(*BlameConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DataServer_ServiceDesc is the grpc.ServiceDesc for DataServer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -484,6 +518,10 @@ var DataServer_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetIntent",
 			Handler:    _DataServer_GetIntent_Handler,
+		},
+		{
+			MethodName: "BlameConfig",
+			Handler:    _DataServer_BlameConfig_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
