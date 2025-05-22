@@ -496,7 +496,7 @@ message BlameConfigResponse { BlameTreeElement config_tree = 1; }
 
 message BlameTreeElement {
   string                    name   = 1;
-  repeated BlameTreeElement childs = 2;
+  string                    owner  = 2;
   TypedValue                value  = 3;
-  string                    owner  = 4;
+  repeated BlameTreeElement childs = 10;
 }
