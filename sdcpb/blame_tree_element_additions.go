@@ -61,8 +61,15 @@ func (b *BlameTreeElement) StringIndent(sb *strings.Builder, prefix string, isLa
 		icon = "🍃 "
 	}
 
+	deviated := "   "
+	deviated_value := ""
+	if b.IsDeviated() {
+		deviated = "(*)"
+		deviated_value = fmt.Sprintf(" [-> %s]", b.GetDeviationValue().ToString())
+	}
+
 	// Write this node
-	sb.WriteString(fmt.Sprintf("%*s  │  %s%s%s%s%s\n", ownerSize, b.OwnerNormalized(), prefix, connector, icon, b.Name, value))
+	sb.WriteString(fmt.Sprintf("%*s%s │ %s%s%s%s%s%s\n", ownerSize, b.OwnerNormalized(), deviated, prefix, connector, icon, b.Name, value, deviated_value))
 
 	// Write children
 	cCount := b.ChildCount()
@@ -72,6 +79,10 @@ func (b *BlameTreeElement) StringIndent(sb *strings.Builder, prefix string, isLa
 		c.StringIndent(sb, nextPrefix, cCount == counter, false, ownerSize)
 	}
 	return sb.String()
+}
+
+func (b *BlameTreeElement) IsDeviated() bool {
+	return b.GetDeviationValue() != nil
 }
 
 func (b *BlameTreeElement) ToString() string {
