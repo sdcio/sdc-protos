@@ -48,6 +48,8 @@ service DataServer {
 
   rpc WatchDeviations(WatchDeviationRequest)
       returns (stream WatchDeviationResponse);
+
+  rpc BlameConfig(BlameConfigRequest) returns (BlameConfigResponse);
 }
 
 // messages
@@ -482,4 +484,20 @@ message Intent {
   int32 priority         = 2;
   // list of updates
   repeated Update update = 3;
+}
+
+message BlameConfigRequest {
+  // datastore name
+  string datastore_name   = 1;
+  bool   include_defaults = 5;
+}
+
+message BlameConfigResponse { BlameTreeElement config_tree = 1; }
+
+message BlameTreeElement {
+  string                    name            = 1;
+  string                    owner           = 2;
+  TypedValue                value           = 3;
+  TypedValue                deviation_value = 4;
+  repeated BlameTreeElement childs          = 10;
 }
