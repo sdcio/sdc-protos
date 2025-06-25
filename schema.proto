@@ -238,17 +238,18 @@ message SchemaLeafType {
   repeated SchemaMinMaxType range               = 2;
   repeated SchemaMinMaxType length              = 3;
   repeated string           enum_names          = 4;
-  string                    units               = 5;
-  string                    type_name           = 6;
-  string                    leafref             = 7;
+  repeated Bit              bits                = 5;
+  string                    units               = 6;
+  string                    type_name           = 7;
+  string                    leafref             = 8;
   // optional_instance defines for a leafref if the referenced leaf needs to
   // exist or not.
-  bool                    optional_instance     = 8;
-  repeated SchemaPattern  patterns              = 9;
-  repeated SchemaLeafType union_types           = 10;
-  map<string, string>     identity_prefixes_map = 11;
-  map<string, string>     module_prefix_map     = 12;
-  SchemaLeafType          leafref_target_type   = 13;
+  bool                    optional_instance     = 9;
+  repeated SchemaPattern  patterns              = 10;
+  repeated SchemaLeafType union_types           = 11;
+  map<string, string>     identity_prefixes_map = 12;
+  map<string, string>     module_prefix_map     = 13;
+  SchemaLeafType          leafref_target_type   = 14;
 }
 
 message MustStatement {
@@ -282,6 +283,13 @@ message SchemaMinMaxType {
 message Number {
   uint64 value    = 1;
   bool   negative = 2;
+}
+
+message Bit {
+  string name     = 1;
+  // https://datatracker.ietf.org/doc/html/rfc7950#section-9.7.4.2
+  // max is 4294967295 == 2^32-1 -> 32 bit uint
+  uint32 position = 2;
 }
 
 enum SchemaStatus {
