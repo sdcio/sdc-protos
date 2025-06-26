@@ -249,6 +249,7 @@ message SchemaLeafType {
   map<string, string>     identity_prefixes_map = 11;
   map<string, string>     module_prefix_map     = 12;
   SchemaLeafType          leafref_target_type   = 13;
+  repeated Bit            bits                  = 14;
 }
 
 message MustStatement {
@@ -282,6 +283,13 @@ message SchemaMinMaxType {
 message Number {
   uint64 value    = 1;
   bool   negative = 2;
+}
+
+message Bit {
+  string name     = 1;
+  // https://datatracker.ietf.org/doc/html/rfc7950#section-9.7.4.2
+  // max is 4294967295 == 2^32-1 -> 32 bit uint
+  uint32 position = 2;
 }
 
 enum SchemaStatus {
