@@ -2059,18 +2059,18 @@ type SchemaLeafType struct {
 	Range     []*SchemaMinMaxType    `protobuf:"bytes,2,rep,name=range,proto3" json:"range,omitempty"`
 	Length    []*SchemaMinMaxType    `protobuf:"bytes,3,rep,name=length,proto3" json:"length,omitempty"`
 	EnumNames []string               `protobuf:"bytes,4,rep,name=enum_names,json=enumNames,proto3" json:"enum_names,omitempty"`
-	Bits      []*Bit                 `protobuf:"bytes,5,rep,name=bits,proto3" json:"bits,omitempty"`
-	Units     string                 `protobuf:"bytes,6,opt,name=units,proto3" json:"units,omitempty"`
-	TypeName  string                 `protobuf:"bytes,7,opt,name=type_name,json=typeName,proto3" json:"type_name,omitempty"`
-	Leafref   string                 `protobuf:"bytes,8,opt,name=leafref,proto3" json:"leafref,omitempty"`
+	Units     string                 `protobuf:"bytes,5,opt,name=units,proto3" json:"units,omitempty"`
+	TypeName  string                 `protobuf:"bytes,6,opt,name=type_name,json=typeName,proto3" json:"type_name,omitempty"`
+	Leafref   string                 `protobuf:"bytes,7,opt,name=leafref,proto3" json:"leafref,omitempty"`
 	// optional_instance defines for a leafref if the referenced leaf needs to
 	// exist or not.
-	OptionalInstance    bool              `protobuf:"varint,9,opt,name=optional_instance,json=optionalInstance,proto3" json:"optional_instance,omitempty"`
-	Patterns            []*SchemaPattern  `protobuf:"bytes,10,rep,name=patterns,proto3" json:"patterns,omitempty"`
-	UnionTypes          []*SchemaLeafType `protobuf:"bytes,11,rep,name=union_types,json=unionTypes,proto3" json:"union_types,omitempty"`
-	IdentityPrefixesMap map[string]string `protobuf:"bytes,12,rep,name=identity_prefixes_map,json=identityPrefixesMap,proto3" json:"identity_prefixes_map,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	ModulePrefixMap     map[string]string `protobuf:"bytes,13,rep,name=module_prefix_map,json=modulePrefixMap,proto3" json:"module_prefix_map,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	LeafrefTargetType   *SchemaLeafType   `protobuf:"bytes,14,opt,name=leafref_target_type,json=leafrefTargetType,proto3" json:"leafref_target_type,omitempty"`
+	OptionalInstance    bool              `protobuf:"varint,8,opt,name=optional_instance,json=optionalInstance,proto3" json:"optional_instance,omitempty"`
+	Patterns            []*SchemaPattern  `protobuf:"bytes,9,rep,name=patterns,proto3" json:"patterns,omitempty"`
+	UnionTypes          []*SchemaLeafType `protobuf:"bytes,10,rep,name=union_types,json=unionTypes,proto3" json:"union_types,omitempty"`
+	IdentityPrefixesMap map[string]string `protobuf:"bytes,11,rep,name=identity_prefixes_map,json=identityPrefixesMap,proto3" json:"identity_prefixes_map,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ModulePrefixMap     map[string]string `protobuf:"bytes,12,rep,name=module_prefix_map,json=modulePrefixMap,proto3" json:"module_prefix_map,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	LeafrefTargetType   *SchemaLeafType   `protobuf:"bytes,13,opt,name=leafref_target_type,json=leafrefTargetType,proto3" json:"leafref_target_type,omitempty"`
+	Bits                []*Bit            `protobuf:"bytes,14,rep,name=bits,proto3" json:"bits,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -2129,13 +2129,6 @@ func (x *SchemaLeafType) GetLength() []*SchemaMinMaxType {
 func (x *SchemaLeafType) GetEnumNames() []string {
 	if x != nil {
 		return x.EnumNames
-	}
-	return nil
-}
-
-func (x *SchemaLeafType) GetBits() []*Bit {
-	if x != nil {
-		return x.Bits
 	}
 	return nil
 }
@@ -2199,6 +2192,13 @@ func (x *SchemaLeafType) GetModulePrefixMap() map[string]string {
 func (x *SchemaLeafType) GetLeafrefTargetType() *SchemaLeafType {
 	if x != nil {
 		return x.LeafrefTargetType
+	}
+	return nil
+}
+
+func (x *SchemaLeafType) GetBits() []*Bit {
+	if x != nil {
+		return x.Bits
 	}
 	return nil
 }
@@ -2526,9 +2526,11 @@ func (x *Number) GetNegative() bool {
 }
 
 type Bit struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Position      uint32                 `protobuf:"varint,2,opt,name=position,proto3" json:"position,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// https://datatracker.ietf.org/doc/html/rfc7950#section-9.7.4.2
+	// max is 4294967295 == 2^32-1 -> 32 bit uint
+	Position      uint32 `protobuf:"varint,2,opt,name=position,proto3" json:"position,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2874,19 +2876,19 @@ const file_schema_proto_rawDesc = "" +
 	"\x05range\x18\x02 \x03(\v2\x18.schema.SchemaMinMaxTypeR\x05range\x120\n" +
 	"\x06length\x18\x03 \x03(\v2\x18.schema.SchemaMinMaxTypeR\x06length\x12\x1d\n" +
 	"\n" +
-	"enum_names\x18\x04 \x03(\tR\tenumNames\x12\x1f\n" +
-	"\x04bits\x18\x05 \x03(\v2\v.schema.BitR\x04bits\x12\x14\n" +
-	"\x05units\x18\x06 \x01(\tR\x05units\x12\x1b\n" +
-	"\ttype_name\x18\a \x01(\tR\btypeName\x12\x18\n" +
-	"\aleafref\x18\b \x01(\tR\aleafref\x12+\n" +
-	"\x11optional_instance\x18\t \x01(\bR\x10optionalInstance\x121\n" +
-	"\bpatterns\x18\n" +
-	" \x03(\v2\x15.schema.SchemaPatternR\bpatterns\x127\n" +
-	"\vunion_types\x18\v \x03(\v2\x16.schema.SchemaLeafTypeR\n" +
+	"enum_names\x18\x04 \x03(\tR\tenumNames\x12\x14\n" +
+	"\x05units\x18\x05 \x01(\tR\x05units\x12\x1b\n" +
+	"\ttype_name\x18\x06 \x01(\tR\btypeName\x12\x18\n" +
+	"\aleafref\x18\a \x01(\tR\aleafref\x12+\n" +
+	"\x11optional_instance\x18\b \x01(\bR\x10optionalInstance\x121\n" +
+	"\bpatterns\x18\t \x03(\v2\x15.schema.SchemaPatternR\bpatterns\x127\n" +
+	"\vunion_types\x18\n" +
+	" \x03(\v2\x16.schema.SchemaLeafTypeR\n" +
 	"unionTypes\x12c\n" +
-	"\x15identity_prefixes_map\x18\f \x03(\v2/.schema.SchemaLeafType.IdentityPrefixesMapEntryR\x13identityPrefixesMap\x12W\n" +
-	"\x11module_prefix_map\x18\r \x03(\v2+.schema.SchemaLeafType.ModulePrefixMapEntryR\x0fmodulePrefixMap\x12F\n" +
-	"\x13leafref_target_type\x18\x0e \x01(\v2\x16.schema.SchemaLeafTypeR\x11leafrefTargetType\x1aF\n" +
+	"\x15identity_prefixes_map\x18\v \x03(\v2/.schema.SchemaLeafType.IdentityPrefixesMapEntryR\x13identityPrefixesMap\x12W\n" +
+	"\x11module_prefix_map\x18\f \x03(\v2+.schema.SchemaLeafType.ModulePrefixMapEntryR\x0fmodulePrefixMap\x12F\n" +
+	"\x13leafref_target_type\x18\r \x01(\v2\x16.schema.SchemaLeafTypeR\x11leafrefTargetType\x12\x1f\n" +
+	"\x04bits\x18\x0e \x03(\v2\v.schema.BitR\x04bits\x1aF\n" +
 	"\x18IdentityPrefixesMapEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aB\n" +
@@ -3059,12 +3061,12 @@ var file_schema_proto_depIdxs = []int32{
 	32, // 35: schema.LeafSchema.must_statements:type_name -> schema.MustStatement
 	36, // 36: schema.SchemaLeafType.range:type_name -> schema.SchemaMinMaxType
 	36, // 37: schema.SchemaLeafType.length:type_name -> schema.SchemaMinMaxType
-	38, // 38: schema.SchemaLeafType.bits:type_name -> schema.Bit
-	35, // 39: schema.SchemaLeafType.patterns:type_name -> schema.SchemaPattern
-	31, // 40: schema.SchemaLeafType.union_types:type_name -> schema.SchemaLeafType
-	42, // 41: schema.SchemaLeafType.identity_prefixes_map:type_name -> schema.SchemaLeafType.IdentityPrefixesMapEntry
-	43, // 42: schema.SchemaLeafType.module_prefix_map:type_name -> schema.SchemaLeafType.ModulePrefixMapEntry
-	31, // 43: schema.SchemaLeafType.leafref_target_type:type_name -> schema.SchemaLeafType
+	35, // 38: schema.SchemaLeafType.patterns:type_name -> schema.SchemaPattern
+	31, // 39: schema.SchemaLeafType.union_types:type_name -> schema.SchemaLeafType
+	42, // 40: schema.SchemaLeafType.identity_prefixes_map:type_name -> schema.SchemaLeafType.IdentityPrefixesMapEntry
+	43, // 41: schema.SchemaLeafType.module_prefix_map:type_name -> schema.SchemaLeafType.ModulePrefixMapEntry
+	31, // 42: schema.SchemaLeafType.leafref_target_type:type_name -> schema.SchemaLeafType
+	38, // 43: schema.SchemaLeafType.bits:type_name -> schema.Bit
 	44, // 44: schema.PathElem.key:type_name -> schema.PathElem.KeyEntry
 	33, // 45: schema.Path.elem:type_name -> schema.PathElem
 	37, // 46: schema.SchemaMinMaxType.min:type_name -> schema.Number

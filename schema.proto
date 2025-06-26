@@ -238,18 +238,18 @@ message SchemaLeafType {
   repeated SchemaMinMaxType range               = 2;
   repeated SchemaMinMaxType length              = 3;
   repeated string           enum_names          = 4;
-  repeated Bit              bits                = 5;
-  string                    units               = 6;
-  string                    type_name           = 7;
-  string                    leafref             = 8;
+  string                    units               = 5;
+  string                    type_name           = 6;
+  string                    leafref             = 7;
   // optional_instance defines for a leafref if the referenced leaf needs to
   // exist or not.
-  bool                    optional_instance     = 9;
-  repeated SchemaPattern  patterns              = 10;
-  repeated SchemaLeafType union_types           = 11;
-  map<string, string>     identity_prefixes_map = 12;
-  map<string, string>     module_prefix_map     = 13;
-  SchemaLeafType          leafref_target_type   = 14;
+  bool                    optional_instance     = 8;
+  repeated SchemaPattern  patterns              = 9;
+  repeated SchemaLeafType union_types           = 10;
+  map<string, string>     identity_prefixes_map = 11;
+  map<string, string>     module_prefix_map     = 12;
+  SchemaLeafType          leafref_target_type   = 13;
+  repeated Bit            bits                  = 14;
 }
 
 message MustStatement {
