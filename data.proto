@@ -186,6 +186,10 @@ message TransactionIntent {
   // delete only from intended store
   // basically keeping the config on the device but unmanaged
   bool orphan            = 5;
+  // deviation indicates the data is related to a deviation
+  // this serves as an indication not to store the related
+  // update data in the intent store
+  bool deviation         = 6;
 }
 
 message TransactionSetResponse {
