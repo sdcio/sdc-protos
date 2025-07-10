@@ -186,9 +186,9 @@ message TransactionIntent {
   // delete only from intended store
   // basically keeping the config on the device but unmanaged
   bool orphan            = 5;
-  // do not to store flag indicates to not store the intent
-  // in the intent store
-  bool do_not_store      = 6;
+  // deviation is set to true if it is an intent that represents a deviation
+  // from an underlaying intent.
+  bool deviation         = 6;
 }
 
 message TransactionSetResponse {
