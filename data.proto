@@ -176,19 +176,22 @@ message TransactionSetRequest {
 
 message TransactionIntent {
   // intent name
-  string intent          = 1;
+  string intent               = 1;
   // intent priority
-  int32 priority         = 2;
+  int32 priority              = 2;
   // list of updates
-  repeated Update update = 3;
+  repeated Update update      = 3;
   // delete indicator
-  bool delete            = 4;
+  bool delete                 = 4;
   // delete only from intended store
   // basically keeping the config on the device but unmanaged
-  bool orphan            = 5;
-  // do not to store flag indicates to not store the intent
-  // in the intent store
-  bool do_not_store      = 6;
+  bool orphan                 = 5;
+  // deviation is set to true if it is an intent that represents a deviation
+  // from an underlaying intent.
+  bool deviation              = 6;
+  // indicate that if the intent is marked for deletion but does not exist, no
+  // error is returned
+  bool delete_ignore_no_exist = 7;
 }
 
 message TransactionSetResponse {
