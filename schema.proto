@@ -265,9 +265,10 @@ message PathElem {
 }
 
 message Path {
-  string            origin = 2;
-  repeated PathElem elem   = 3;
-  string            target = 4;
+  string            origin        = 2;
+  repeated PathElem elem          = 3;
+  string            target        = 4;
+  bool              is_root_based = 5;
 }
 
 message SchemaPattern {
