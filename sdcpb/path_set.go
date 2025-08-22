@@ -12,6 +12,14 @@ func NewPathSet() *PathSet {
 	}
 }
 
+func (ps *PathSet) DeepCopy() *PathSet {
+	result := NewPathSet()
+	for k, v := range ps.pathMap {
+		result.pathMap[k] = v.DeepCopy()
+	}
+	return result
+}
+
 func (ps *PathSet) AddPath(p *Path) *PathSet {
 	key := p.ToXPath(false)
 	if _, exists := ps.pathMap[key]; !exists {
