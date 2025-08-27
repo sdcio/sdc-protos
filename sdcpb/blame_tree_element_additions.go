@@ -21,6 +21,11 @@ func (b *BlameTreeElement) SetOwner(owner string) *BlameTreeElement {
 	return b
 }
 
+func (b *BlameTreeElement) SetDeviationValue(tv *TypedValue) *BlameTreeElement {
+	b.DeviationValue = tv
+	return b
+}
+
 func (b *BlameTreeElement) CalculateMaxOwnerLength() int {
 	maxLen := len(b.OwnerNormalized())
 	for _, c := range b.GetChilds() {
