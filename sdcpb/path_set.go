@@ -20,6 +20,13 @@ func (ps *PathSet) DeepCopy() *PathSet {
 	return result
 }
 
+func (ps *PathSet) AddPaths(paths []*Path) *PathSet {
+	for _, p := range paths {
+		ps.AddPath(p)
+	}
+	return ps
+}
+
 func (ps *PathSet) AddPath(p *Path) *PathSet {
 	key := p.ToXPath(false)
 	if _, exists := ps.pathMap[key]; !exists {

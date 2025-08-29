@@ -20,7 +20,7 @@ import "schema.proto";
 
 package data;
 
-option go_package = ".;schema_server";
+option go_package = "github.com/sdcio/sdc-protos/sdcpb;schema_server";
 
 service DataServer {
   // datastore
