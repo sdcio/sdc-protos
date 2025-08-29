@@ -51,3 +51,11 @@ func (ps *PathSet) Items() iter.Seq[*Path] {
 		}
 	}
 }
+
+func (ps *PathSet) ToPathSlice() []*Path {
+	result := make([]*Path, 0, len(ps.pathMap))
+	for p := range ps.Items() {
+		result = append(result, p)
+	}
+	return result
+}
