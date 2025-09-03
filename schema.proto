@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package schema;
 
-option go_package = ".;schema_server";
+option go_package = "github.com/sdcio/sdc-protos/sdcpb;schema_server";
 
 service SchemaServer {
   // returns schema name, vendor, version, and files path(s)
