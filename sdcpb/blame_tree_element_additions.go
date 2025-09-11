@@ -62,7 +62,7 @@ func (b *BlameTreeElement) StringIndent(sb *strings.Builder, prefix string, isLa
 	// Compose value string
 	value := ""
 	if b.GetValue() != nil {
-		value = fmt.Sprintf(" -> %s", b.Value.ToString())
+		value = fmt.Sprintf(" -> %s", b.GetValue().ToString())
 		icon = "🍃 "
 	}
 
@@ -70,7 +70,8 @@ func (b *BlameTreeElement) StringIndent(sb *strings.Builder, prefix string, isLa
 	deviated_value := ""
 	if b.IsDeviated() {
 		deviated = "(*)"
-		deviated_value = fmt.Sprintf(" [-> %s]", b.GetDeviationValue().ToString())
+		value = fmt.Sprintf(" -> %s", b.GetDeviationValue().ToString())
+		deviated_value = fmt.Sprintf(" [~> %s]", b.GetValue().ToString())
 	}
 
 	// Write this node
