@@ -1,96 +1,118 @@
 package schema_server
 
 import (
+	"bytes"
 	"cmp"
+	"fmt"
 	"math"
+	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 )
 
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+func (tv *TypedValue) typeOrder() int {
+	msg := tv.ProtoReflect()
+	fd := msg.Descriptor().Oneofs().Get(0) // the oneof
+	which := msg.WhichOneof(fd)            // active field
+	return int(which.Number())             // field number = stable ordering
+}
+
+// Equal provide equal via Cmp
+func (tv *TypedValue) Equal(other *TypedValue) bool {
+	return tv.Cmp(other) == 0
+}
+
 // Cmp implements the slices.SortFunc for TypedValues
 // if the two TypedValues are of different TypedValues types, 0 is returned (indicating equal), since no proper comparison is possible
 func (tv *TypedValue) Cmp(other *TypedValue) int {
+	if tv == nil && other == nil {
+		return 0
+	}
+	if tv == nil {
+		return -1
+	}
+	if other == nil {
+		return 1
+	}
+	// if types are different, we use the rank from the proto file to determine order.
+	if reflect.TypeOf(tv.GetValue()) != reflect.TypeOf(other.GetValue()) {
+		return cmp.Compare(tv.typeOrder(), other.typeOrder())
+	}
+
+	// otherwise compare the exact types values.
 	switch tv.Value.(type) {
+	case *TypedValue_AnyVal:
+		return bytes.Compare(tv.GetAnyVal().Value, other.GetAnyVal().GetValue())
+	case *TypedValue_AsciiVal:
+		return cmp.Compare(tv.GetAsciiVal(), other.GetAsciiVal())
 	case *TypedValue_BoolVal:
-		_, ok := other.Value.(*TypedValue_BoolVal)
-		if !ok {
-			return 0
-		}
-		if tv.GetBoolVal() && !other.GetBoolVal() {
-			return 1
-		}
-		if !tv.GetBoolVal() && other.GetBoolVal() {
-			return -1
-		}
+		return cmp.Compare(boolToInt(tv.GetBoolVal()), boolToInt(other.GetBoolVal()))
+	case *TypedValue_BytesVal:
+		return bytes.Compare(tv.GetBytesVal(), other.GetBytesVal())
 	case *TypedValue_DecimalVal:
-		_, ok := other.Value.(*TypedValue_DecimalVal)
-		if !ok {
-			return 0
-		}
-		tvScale := math.Pow(10, float64(tv.GetDecimalVal().Precision))
-		otherScale := math.Pow(10, float64(other.GetDecimalVal().Precision))
+		dtv := tv.GetDecimalVal()
+		dother := other.GetDecimalVal()
 
-		tvVal := tv.GetDecimalVal().Digits * int64(tvScale)
-		otherVal := other.GetDecimalVal().Digits * int64(otherScale)
-		// check digits are larger or smaller
-		if tvVal > otherVal {
-			return 1
-		} else if tvVal < otherVal {
-			return -1
+		// pick the higher precision
+		maxPrec := int(dtv.Precision)
+		if int(dother.Precision) > maxPrec {
+			maxPrec = int(dother.Precision)
 		}
 
+		// rescale digits to the same base
+		scaletv := int(math.Pow10(maxPrec - int(dtv.Precision)))
+		scaleother := int(math.Pow10(maxPrec - int(dother.Precision)))
+
+		ntv := dtv.Digits * int64(scaletv)
+		nother := dother.Digits * int64(scaleother)
+
+		return cmp.Compare(ntv, nother)
 	case *TypedValue_DoubleVal:
-		_, ok := other.Value.(*TypedValue_DoubleVal)
-		if !ok {
-			return 0
-		}
-		if tv.GetDoubleVal() > other.GetDoubleVal() {
-			return 1
-		} else if tv.GetDoubleVal() < other.GetDoubleVal() {
-			return -1
-		}
+		return cmp.Compare(tv.GetDoubleVal(), other.GetDoubleVal())
+	case *TypedValue_EmptyVal:
+		return 0
 	case *TypedValue_FloatVal:
-		_, ok := other.Value.(*TypedValue_FloatVal)
-		if !ok {
-			return 0
-		}
-		if tv.GetFloatVal() > other.GetFloatVal() {
-			return 1
-		} else if tv.GetFloatVal() < other.GetFloatVal() {
-			return -1
-		}
+		return cmp.Compare(tv.GetFloatVal(), other.GetFloatVal())
 	case *TypedValue_IntVal:
-		_, ok := other.Value.(*TypedValue_IntVal)
-		if !ok {
-			return 0
-		}
-		if tv.GetIntVal() > other.GetIntVal() {
-			return 1
-		} else if tv.GetIntVal() < other.GetIntVal() {
-			return -1
-		}
-	case *TypedValue_UintVal:
-		_, ok := other.Value.(*TypedValue_UintVal)
-		if !ok {
-			return 0
-		}
-		if tv.GetUintVal() > other.GetUintVal() {
-			return 1
-		} else if tv.GetUintVal() < other.GetUintVal() {
-			return -1
-		}
+		return cmp.Compare(tv.GetIntVal(), other.GetIntVal())
+	case *TypedValue_JsonIetfVal:
+		return bytes.Compare(tv.GetJsonIetfVal(), other.GetJsonIetfVal())
+	case *TypedValue_JsonVal:
+		return bytes.Compare(tv.GetJsonVal(), other.GetJsonVal())
+	case *TypedValue_LeaflistVal:
+		lltv := toStringSorted(tv.GetLeaflistVal().GetElement())
+		llother := toStringSorted(other.GetLeaflistVal().GetElement())
+		return slices.Compare(lltv, llother)
+	case *TypedValue_ProtoBytes:
+		return bytes.Compare(tv.GetProtoBytes(), other.GetProtoBytes())
 	case *TypedValue_StringVal:
-		if other.GetStringVal() == "" {
-			return 0
-		}
 		return cmp.Compare(tv.GetStringVal(), other.GetStringVal())
+	case *TypedValue_UintVal:
+		return cmp.Compare(tv.GetUintVal(), other.GetUintVal())
 	case *TypedValue_IdentityrefVal:
-		if other.GetIdentityrefVal() == nil {
-			return 0
-		}
-		return cmp.Compare(tv.GetIdentityrefVal().Value, other.GetIdentityrefVal().Value)
+		tvVal := fmt.Sprintf("%s%s%s", tv.GetIdentityrefVal().GetValue(), tv.GetIdentityrefVal().GetModule(), tv.GetIdentityrefVal().GetPrefix())
+		otherVal := fmt.Sprintf("%s%s%s", other.GetIdentityrefVal().GetValue(), other.GetIdentityrefVal().GetModule(), other.GetIdentityrefVal().GetPrefix())
+		return cmp.Compare(tvVal, otherVal)
 	}
 	return 0
+}
+
+// toStringSorted takes a slice of TVs converts the elements to strings and returns a the sorted string slice.
+func toStringSorted(tvs []*TypedValue) []string {
+	result := make([]string, 0, len(tvs))
+	for _, tv := range tvs {
+		result = append(result, tv.ToString())
+	}
+	slices.Sort(result)
+	return result
 }
 
 // ToString converts the TypedValue to the real, non proto string
