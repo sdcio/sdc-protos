@@ -17,6 +17,20 @@ func (p *Path) AddPathElem(pe *PathElem) *Path {
 	return p
 }
 
+func (p *Path) CopyPathAddElem(pe *PathElem) *Path {
+	child := &Path{
+		Origin:      p.Origin,
+		Target:      p.Target,
+		IsRootBased: p.IsRootBased,
+		// Create a new slice header for the child by appending `pe` to the parent's elements.
+		// The full-slice expression [:len:len] ensures the new slice has its own header and
+		// limited capacity, so appending does not modify the parent's underlying array.
+		Elem: append(p.Elem[:len(p.Elem):len(p.Elem)], pe),
+	}
+
+	return child
+}
+
 func (p *Path) ToXPath(noKeys bool) string {
 	if p == nil {
 		return ""
@@ -191,27 +205,6 @@ func (p1 *Path) PathsEqual(p2 *Path) bool {
 	}
 	for i, pe := range p1.GetElem() {
 		if !pe.Equal(p2.GetElem()[i]) {
-			return false
-		}
-	}
-	return true
-}
-
-func (pe1 *PathElem) Equal(pe2 *PathElem) bool {
-	if pe1 == nil && pe2 == nil {
-		return true
-	}
-	if pe1 == nil || pe2 == nil {
-		return false
-	}
-	if pe1.GetName() != pe2.GetName() {
-		return false
-	}
-	if len(pe1.GetKey()) != len(pe2.GetKey()) {
-		return false
-	}
-	for k, v := range pe1.GetKey() {
-		if pe2.GetKey()[k] != v {
 			return false
 		}
 	}
@@ -430,4 +423,61 @@ func parseXPathKeys(s string) (map[string]string, error) {
 		return nil, errMalformedXPathKey
 	}
 	return kvs, nil
+}
+
+func ComparePath(a, b *Path) int {
+	if a == nil && b == nil {
+		return 0
+	}
+	if a == nil {
+		return -1
+	}
+	if b == nil {
+		return 1
+	}
+
+	// Compare Origin
+	if a.Origin < b.Origin {
+		return -1
+	}
+	if a.Origin > b.Origin {
+		return 1
+	}
+
+	// Lexicographic comparison of Elem
+	minLen := len(a.Elem)
+	if len(b.Elem) < minLen {
+		minLen = len(b.Elem)
+	}
+	for i := 0; i < minLen; i++ {
+		if cmp := ComparePathElem(a.Elem[i], b.Elem[i]); cmp != 0 {
+			return cmp
+		}
+	}
+	// If all common elements are equal, shorter slice wins
+	if len(a.Elem) < len(b.Elem) {
+		return -1
+	}
+	if len(a.Elem) > len(b.Elem) {
+		return 1
+	}
+
+	// Compare Target
+	if a.Target < b.Target {
+		return -1
+	}
+	if a.Target > b.Target {
+		return 1
+	}
+
+	// Compare IsRootBased (false < true)
+	if !a.IsRootBased && b.IsRootBased {
+		return -1
+	}
+	if a.IsRootBased && !b.IsRootBased {
+		return 1
+	}
+
+	// All equal
+	return 0
 }

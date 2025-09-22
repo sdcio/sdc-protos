@@ -3,6 +3,7 @@ module github.com/sdcio/sdc-protos
 go 1.23.9
 
 require (
+	github.com/gogo/protobuf v1.3.2
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.8
 )
