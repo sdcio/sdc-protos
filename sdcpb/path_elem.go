@@ -121,3 +121,10 @@ func ComparePathElem(a, b *PathElem) int {
 	// All equal
 	return 0
 }
+
+func (p *PathElem) AddKey(key, value string) {
+	if p.Key == nil {
+		p.Key = map[string]string{}
+	}
+	p.Key[key] = value
+}
