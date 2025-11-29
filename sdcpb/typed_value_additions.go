@@ -117,6 +117,9 @@ func toStringSorted(tvs []*TypedValue) []string {
 
 // ToString converts the TypedValue to the real, non proto string
 func (tv *TypedValue) ToString() string {
+	if tv == nil {
+		return ""
+	}
 	switch tv.Value.(type) {
 	case *TypedValue_AnyVal:
 		return string(tv.GetAnyVal().GetValue()) // questionable...
@@ -155,7 +158,7 @@ func (tv *TypedValue) ToString() string {
 	case *TypedValue_FloatVal:
 		return strconv.FormatFloat(float64(tv.GetFloatVal()), byte('e'), -1, 64)
 	case *TypedValue_IntVal:
-		return strconv.Itoa(int(tv.GetIntVal()))
+		return strconv.FormatInt(tv.GetIntVal(), 10)
 	case *TypedValue_JsonIetfVal:
 		return string(tv.GetJsonIetfVal())
 	case *TypedValue_JsonVal:
@@ -171,7 +174,7 @@ func (tv *TypedValue) ToString() string {
 	case *TypedValue_StringVal:
 		return tv.GetStringVal()
 	case *TypedValue_UintVal:
-		return strconv.Itoa(int(tv.GetUintVal()))
+		return strconv.FormatUint(tv.GetUintVal(), 10)
 	case *TypedValue_IdentityrefVal:
 		return tv.GetIdentityrefVal().Value
 	}
