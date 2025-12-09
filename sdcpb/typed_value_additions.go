@@ -1,4 +1,4 @@
-package schema_server
+package sdcpb
 
 import (
 	"bytes"
@@ -176,4 +176,55 @@ func (tv *TypedValue) ToString() string {
 		return tv.GetIdentityrefVal().Value
 	}
 	return ""
+}
+
+//TODO: Still needed?
+func ConvertToTypedValue(schemaObject *SchemaElem, v string, ts uint64) (*TypedValue, error) {
+	var schemaType *SchemaLeafType
+	switch {
+	case schemaObject.GetField() != nil:
+		schemaType = schemaObject.GetField().GetType()
+	case schemaObject.GetLeaflist() != nil:
+		schemaType = schemaObject.GetLeaflist().GetType()
+	case schemaObject.GetContainer() != nil:
+		if !schemaObject.GetContainer().IsPresence {
+			return nil, fmt.Errorf("non presence container update")
+		}
+		return nil, nil
+	}
+	return TVFromString(schemaType, v, ts)
+}
+
+func (tv *TypedValue) ToYANGType(schemaObject *SchemaElem) (*TypedValue, error) {
+	switch tv.Value.(type) {
+	case *TypedValue_AsciiVal:
+		return ConvertToTypedValue(schemaObject, tv.GetAsciiVal(), tv.GetTimestamp())
+	case *TypedValue_BoolVal:
+		return tv, nil
+	case *TypedValue_BytesVal:
+		return tv, nil
+	case *TypedValue_DecimalVal:
+		return tv, nil
+	case *TypedValue_FloatVal:
+		return tv, nil
+	case *TypedValue_DoubleVal:
+		return tv, nil
+	case *TypedValue_IntVal:
+		return tv, nil
+	case *TypedValue_StringVal:
+		return ConvertToTypedValue(schemaObject, tv.GetStringVal(), tv.GetTimestamp())
+	case *TypedValue_UintVal:
+		return tv, nil
+	case *TypedValue_JsonIetfVal: // TODO:
+	case *TypedValue_JsonVal: // TODO:
+	case *TypedValue_LeaflistVal:
+		return tv, nil
+	case *TypedValue_ProtoBytes:
+		return tv, nil
+	case *TypedValue_AnyVal:
+		return tv, nil
+	case *TypedValue_IdentityrefVal:
+		return ConvertToTypedValue(schemaObject, tv.GetStringVal(), tv.GetTimestamp())
+	}
+	return tv, nil
 }

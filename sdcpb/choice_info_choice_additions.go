@@ -1,4 +1,4 @@
-package schema_server
+package sdcpb
 
 func (c *ChoiceInfoChoice) GetAllAttributes() []string {
 	result := make([]string, 0, len(c.Case))

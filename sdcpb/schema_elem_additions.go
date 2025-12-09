@@ -1,4 +1,4 @@
-package schema_server
+package sdcpb
 
 func (s *SchemaElem) IsState() bool {
 	switch x := s.Schema.(type) {

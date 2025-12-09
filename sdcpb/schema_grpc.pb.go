@@ -18,10 +18,11 @@
 // - protoc             v3.21.12
 // source: schema.proto
 
-package schema_server
+package sdcpb
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
