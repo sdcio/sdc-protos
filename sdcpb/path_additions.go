@@ -1,4 +1,4 @@
-package schema_server
+package sdcpb
 
 import (
 	"errors"
