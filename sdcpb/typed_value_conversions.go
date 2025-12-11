@@ -11,6 +11,22 @@ import (
 	"github.com/sdcio/sdc-protos/utils"
 )
 
+func SchemaElemToTV(schemaObject *SchemaElem, v string, ts uint64) (*TypedValue, error) {
+	var schemaType *SchemaLeafType
+	switch {
+	case schemaObject.GetField() != nil:
+		schemaType = schemaObject.GetField().GetType()
+	case schemaObject.GetLeaflist() != nil:
+		schemaType = schemaObject.GetLeaflist().GetType()
+	case schemaObject.GetContainer() != nil:
+		if !schemaObject.GetContainer().IsPresence {
+			return nil, fmt.Errorf("non presence container update")
+		}
+		return nil, nil
+	}
+	return TVFromString(schemaType, v, ts)
+}
+
 func TVFromString(schemaType *SchemaLeafType, v string, ts uint64) (*TypedValue, error) {
 	if schemaType == nil {
 		return nil, fmt.Errorf("schemaType cannot be nil")
@@ -58,7 +74,7 @@ func TVFromString(schemaType *SchemaLeafType, v string, ts uint64) (*TypedValue,
 	case "instance-identifier": //TODO: https://www.rfc-editor.org/rfc/rfc6020.html#section-9.13
 		tv, err = ConvertInstanceIdentifier(v, schemaType)
 	case "decimal64":
-		// TODO: is the following TODO still valid? I think no
+		// TODO: is the following TODO still valid? I think not
 		// TODO: fraction-digits (https://www.rfc-editor.org/rfc/rfc6020.html#section-9.3.4)
 		tv, err = ConvertDecimal64(v, schemaType)
 	default:

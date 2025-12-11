@@ -177,19 +177,3 @@ func (tv *TypedValue) ToString() string {
 	}
 	return ""
 }
-
-func SchemaElemToTV(schemaObject *SchemaElem, v string, ts uint64) (*TypedValue, error) {
-	var schemaType *SchemaLeafType
-	switch {
-	case schemaObject.GetField() != nil:
-		schemaType = schemaObject.GetField().GetType()
-	case schemaObject.GetLeaflist() != nil:
-		schemaType = schemaObject.GetLeaflist().GetType()
-	case schemaObject.GetContainer() != nil:
-		if !schemaObject.GetContainer().IsPresence {
-			return nil, fmt.Errorf("non presence container update")
-		}
-		return nil, nil
-	}
-	return TVFromString(schemaType, v, ts)
-}
