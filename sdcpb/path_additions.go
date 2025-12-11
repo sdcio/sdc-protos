@@ -495,8 +495,6 @@ func ComparePath(a, b *Path) int {
 // E.g. <target>/<origin>/a/b[b:d, a:c]/e will be returned as <target>/<origin>/a/b/c/d/e
 // If prefix parameter is set to true, <target> and <origin> fields of
 // the gnmi.Path will be prepended in the index strings unless they are empty string.
-// gnmi.Path.Element field is deprecated, but being gracefully handled by this function
-// in the absence of gnmi.Path.Elem.
 func ToStrings(p *Path, prefix, nokeys bool) []string {
 	is := []string{}
 	if p == nil {

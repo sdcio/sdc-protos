@@ -1,10 +1,8 @@
-package schema_server_test
+package schema_server
 
 import (
 	"slices"
 	"testing"
-
-	schema_server "github.com/sdcio/sdc-protos/sdcpb"
 )
 
 func TestPathElem_PathElemNames(t *testing.T) {
@@ -61,7 +59,7 @@ func TestPathElem_PathElemNames(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			pe := schema_server.NewPathElem(tt.peName, tt.keys)
+			pe := NewPathElem(tt.peName, tt.keys)
 			got := pe.PathElemNames()
 			result := []string{}
 			for x := range got {
