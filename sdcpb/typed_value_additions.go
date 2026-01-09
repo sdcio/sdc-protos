@@ -1,4 +1,4 @@
-package schema_server
+package sdcpb
 
 import (
 	"bytes"
@@ -117,9 +117,6 @@ func toStringSorted(tvs []*TypedValue) []string {
 
 // ToString converts the TypedValue to the real, non proto string
 func (tv *TypedValue) ToString() string {
-	if tv == nil {
-		return ""
-	}
 	switch tv.Value.(type) {
 	case *TypedValue_AnyVal:
 		return string(tv.GetAnyVal().GetValue()) // questionable...

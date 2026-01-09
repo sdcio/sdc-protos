@@ -1,4 +1,4 @@
-package schema_server
+package sdcpb
 
 func (x *ContainerSchema) GetMandatoryChildrenConfig() []*MandatoryChild {
 	var result []*MandatoryChild

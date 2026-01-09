@@ -1,4 +1,4 @@
-package schema_server
+package sdcpb
 
 type Paths []*Path
 
