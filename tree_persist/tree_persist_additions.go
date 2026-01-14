@@ -13,7 +13,14 @@ func (x *Intent) PrettyString(indent string) string {
 		return ""
 	}
 	sb := &strings.Builder{}
-	sb.WriteString(fmt.Sprintf("Intent: %s\nPriority: %d\n", x.GetIntentName(), x.GetPriority()))
+	_, _ = fmt.Fprintf(sb, "Intent: %s\nPriority: %d\nNon-Revertive: %t\n", x.GetIntentName(), x.GetPriority(), x.GetNonRevertive())
+	if len(x.GetExplicitDeletes()) > 0 {
+		_, _ = fmt.Fprintf(sb, "Explicit-Deletes:\n")
+		for _, edel := range x.GetExplicitDeletes() {
+			_, _ = fmt.Fprintf(sb, "%s\n", edel.ToXPath(false))
+		}
+	}
+
 	x.GetRoot().prettyString(indent, 0, sb)
 	return sb.String()
 }
