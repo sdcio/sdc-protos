@@ -189,6 +189,11 @@ message TransactionIntent {
   // non_revertive is set to true if changes in running config should not
   // automatically be reverted.
   bool non_revertive           = 6;
+  // indicates this intent was previously applied; for non_revertive intents,
+  // changes in the running config on the device should remain untouched during
+  // reconciliation when this non_revertive intent shows up for the first time
+  // again
+  bool previously_applied      = 9;
   // indicate that if the intent is marked for deletion but does not exist, no
   // error is returned
   bool delete_ignore_no_exist  = 7;
