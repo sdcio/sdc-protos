@@ -378,7 +378,9 @@ message NetconfOptions {
 
 message GnmiOptions {
   // for gnmi targets
-  string encoding = 11;
+  string encoding    = 11;
+  // xpath target
+  string target_name = 12;
 }
 
 // Southbound interface of the datastore
