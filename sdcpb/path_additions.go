@@ -539,3 +539,31 @@ func sortedVals(m map[string]string) []string {
 	}
 	return vs
 }
+
+// IsSubPathOf returns true if the path is a subpath of the provided parent path. A path is considered a subpath if it has the same origin, target,
+// and root-based status as the parent, and its elements start with the parent's elements in the same order.
+func (p *Path) IsParentPathOf(child *Path) bool {
+	if p == nil || child == nil {
+		return false
+	}
+	if p.Origin != child.Origin || p.Target != child.Target || p.IsRootBased != child.IsRootBased {
+		return false
+	}
+	if len(p.Elem) > len(child.Elem) {
+		return false
+	}
+	for i, pe := range p.Elem {
+		if pe.Equal(child.Elem[i]) {
+			continue
+		}
+
+		// Special case: last element without keys matches on name only
+		isLastElem := i == len(p.Elem)-1
+		if isLastElem && len(pe.GetKey()) == 0 && child.Elem[i].GetName() == pe.GetName() {
+			return true
+		}
+
+		return false
+	}
+	return true
+}
