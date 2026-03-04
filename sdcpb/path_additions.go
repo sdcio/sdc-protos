@@ -18,6 +18,7 @@ func (p *Path) AddPathElem(pe *PathElem) *Path {
 	return p
 }
 
+// CopyPathAddElem creates a child path by copying the parent path and adding a new element to the end of the path.
 func (p *Path) CopyPathAddElem(pe *PathElem) *Path {
 	child := &Path{
 		Origin:      p.Origin,
@@ -28,7 +29,26 @@ func (p *Path) CopyPathAddElem(pe *PathElem) *Path {
 		// limited capacity, so appending does not modify the parent's underlying array.
 		Elem: append(p.Elem[:len(p.Elem):len(p.Elem)], pe),
 	}
+	return child
+}
 
+// CopyPathAddKey creates a child path by copying the parent path and adding a key to the last element of the path.
+// It deep copies only the last element of the path to avoid modifying the parent's last element when adding the key.
+func (p *Path) CopyPathAddKey(keyName string, keyValue string) *Path {
+	child := &Path{
+		Origin:      p.Origin,
+		Target:      p.Target,
+		IsRootBased: p.IsRootBased,
+		Elem:        make([]*PathElem, len(p.Elem)),
+	}
+	// Copy references from parent to child for all but the last element
+	for i := 0; i < len(p.Elem)-1; i++ {
+		child.Elem[i] = p.Elem[i]
+	}
+	// Deep copy only the last element to avoid modifying the parent's last element
+	child.Elem[len(p.Elem)-1] = p.Elem[len(p.Elem)-1].DeepCopy()
+	// Add the key to the (now copied) last element
+	child.Elem[len(p.Elem)-1].AddKey(keyName, keyValue)
 	return child
 }
 
@@ -540,7 +560,7 @@ func sortedVals(m map[string]string) []string {
 	return vs
 }
 
-// IsSubPathOf returns true if the path is a subpath of the provided parent path. A path is considered a subpath if it has the same origin, target,
+// IsParentPathOf returns true if the path is a subpath of the provided parent path. A path is considered a subpath if it has the same origin, target,
 // and root-based status as the parent, and its elements start with the parent's elements in the same order.
 func (p *Path) IsParentPathOf(child *Path) bool {
 	if p == nil || child == nil {
@@ -565,5 +585,55 @@ func (p *Path) IsParentPathOf(child *Path) bool {
 
 		return false
 	}
+	return true
+}
+
+// SharesPrefix returns true if the current path and the filter path share a common prefix.
+// This is useful for tree traversal to determine if traversal should continue into a branch.
+// Returns false immediately (early exit) if paths diverge, enabling efficient tree pruning.
+// Returns true in these cases:
+//   - Current path is shorter than filter and matches so far (continue deeper)
+//   - Current path equals filter length and matches (at target)
+//   - Current path is longer than filter and matches filter prefix (within subtree)
+func (p *Path) SharesPrefix(filter *Path) bool {
+	if p == nil || filter == nil {
+		return false
+	}
+	if p.Origin != filter.Origin || p.Target != filter.Target || p.IsRootBased != filter.IsRootBased {
+		return false
+	}
+
+	// Compare elements up to the length of the shorter path
+	minLen := len(p.Elem)
+	if len(filter.Elem) < minLen {
+		minLen = len(filter.Elem)
+	}
+
+	for i := 0; i < minLen; i++ {
+		if p.Elem[i].Equal(filter.Elem[i]) {
+			continue
+		}
+
+		// Special case: if we're at the last element of the shorter path,
+		// and that element has no keys, match on name only
+		isLastOfCurrent := i == len(p.Elem)-1
+		isLastOfFilter := i == len(filter.Elem)-1
+
+		if isLastOfCurrent && len(p.Elem) <= len(filter.Elem) && len(p.Elem[i].GetKey()) == 0 {
+			if filter.Elem[i].GetName() == p.Elem[i].GetName() {
+				return true
+			}
+		}
+		if isLastOfFilter && len(filter.Elem) <= len(p.Elem) && len(filter.Elem[i].GetKey()) == 0 {
+			if p.Elem[i].GetName() == filter.Elem[i].GetName() {
+				return true
+			}
+		}
+
+		// Paths diverged - early exit
+		return false
+	}
+
+	// All common elements matched
 	return true
 }

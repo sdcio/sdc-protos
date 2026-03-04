@@ -524,9 +524,11 @@ message BlameConfigRequest {
 message BlameConfigResponse { BlameTreeElement config_tree = 1; }
 
 message BlameTreeElement {
-  string                    name            = 1;
-  string                    owner           = 2;
-  TypedValue                value           = 3;
-  TypedValue                deviation_value = 4;
-  repeated BlameTreeElement childs          = 10;
+  string     name                    = 1;
+  string     owner                   = 2;
+  TypedValue value                   = 3;
+  TypedValue deviation_value         = 4;
+  // key_name is set in case the level in the tree is a key level of a list.
+  string                    key_name = 5;
+  repeated BlameTreeElement childs   = 10;
 }
