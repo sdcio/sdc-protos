@@ -177,11 +177,52 @@ func (b *BlameTreeElement) StringXPath() string {
 	maxOwnerLength := b.CalculateMaxOwnerLength()
 
 	// Root node typically has no prefix or connector
-	b.stringxpath(sb, &Path{Elem: nil, IsRootBased: true}, maxOwnerLength)
+	b.WalkPath(&Path{Elem: nil, IsRootBased: true}, func(elem *BlameTreeElement, path *Path) {
+		if elem.StringXPathSingle(sb, path, maxOwnerLength) {
+			sb.WriteString("\n")
+		}
+	})
 	return strings.TrimSuffix(sb.String(), "\n")
 }
 
-func (b *BlameTreeElement) stringxpath(sb *strings.Builder, path *Path, maxOwnerLength int) {
+func (b *BlameTreeElement) StringSliceXPath() []string {
+	if b == nil {
+		return []string{}
+	}
+	maxOwnerLength := b.CalculateMaxOwnerLength()
+
+	result := []string{}
+	sb := &strings.Builder{}
+
+	// Root node typically has no prefix or connector
+	b.WalkPath(&Path{Elem: nil, IsRootBased: true}, func(elem *BlameTreeElement, path *Path) {
+		mustAdd := elem.StringXPathSingle(sb, path, maxOwnerLength)
+		if mustAdd {
+			result = append(result, sb.String())
+		}
+		sb.Reset()
+	})
+	return result
+}
+
+func (b *BlameTreeElement) WalkPath(path *Path, fn func(*BlameTreeElement, *Path)) {
+	if b == nil {
+		return
+	}
+	fn(b, path)
+
+	for _, c := range b.GetChilds() {
+		var childPath *Path
+		if c.GetKeyName() != "" {
+			childPath = path.CopyPathAddKey(c.GetKeyName(), c.GetName())
+		} else {
+			childPath = path.CopyPathAddElem(NewPathElem(c.GetName(), nil))
+		}
+		c.WalkPath(childPath, fn)
+	}
+}
+
+func (b *BlameTreeElement) StringXPathSingle(sb *strings.Builder, path *Path, maxOwnerLength int) bool {
 	val := b.GetValue()
 	if val != nil {
 		deviationTxt := ""
@@ -192,17 +233,8 @@ func (b *BlameTreeElement) stringxpath(sb *strings.Builder, path *Path, maxOwner
 			deviated = "D"
 		}
 
-		fmt.Fprintf(sb, "%s [ %-*s ] %s -> %s%s\n", deviated, maxOwnerLength, b.GetOwner(), path.ToXPath(false), val.ToString(), deviationTxt)
+		fmt.Fprintf(sb, "%s [ %-*s ] %s -> %s%s", deviated, maxOwnerLength, b.GetOwner(), path.ToXPath(false), val.ToString(), deviationTxt)
+		return true
 	}
-
-	// recurse the call
-	for _, c := range b.GetChilds() {
-		var childPath *Path
-		if c.GetKeyName() != "" {
-			childPath = path.CopyPathAddKey(c.GetKeyName(), c.GetName())
-		} else {
-			childPath = path.CopyPathAddElem(NewPathElem(c.GetName(), nil))
-		}
-		c.stringxpath(sb, childPath, maxOwnerLength)
-	}
+	return false
 }

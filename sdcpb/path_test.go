@@ -33,7 +33,7 @@ func TestStripPathElemPrefix(t *testing.T) {
 			args: args{
 				p: "/foo/bar/bla",
 			},
-			want:    "foo/bar/bla",
+			want:    "/foo/bar/bla",
 			wantErr: false,
 		},
 		{
@@ -41,7 +41,7 @@ func TestStripPathElemPrefix(t *testing.T) {
 			args: args{
 				p: "/a:foo/somens:bar/somens:bla",
 			},
-			want:    "foo/bar/bla",
+			want:    "/foo/bar/bla",
 			wantErr: false,
 		},
 		{
@@ -49,7 +49,7 @@ func TestStripPathElemPrefix(t *testing.T) {
 			args: args{
 				p: "/a:foo/somens:bar[k=v]/somens:bla",
 			},
-			want:    "foo/bar[k=v]/bla",
+			want:    "/foo/bar[k=v]/bla",
 			wantErr: false,
 		},
 		{
@@ -57,7 +57,7 @@ func TestStripPathElemPrefix(t *testing.T) {
 			args: args{
 				p: "/a:foo/somens:bar[somens:k=v]/somens:bla",
 			},
-			want:    "foo/bar[k=v]/bla",
+			want:    "/foo/bar[k=v]/bla",
 			wantErr: false,
 		},
 		{
@@ -105,7 +105,7 @@ func TestStripPathElemPrefix(t *testing.T) {
 			args: args{
 				p: "/srl_nokia-netinst:network-instance[srl_nokia-netinst:name = current()/../../../../../srl_nokia-netinst:name]/srl_nokia-netinst:interface/srl_nokia-netinst:name",
 			},
-			want:    "network-instance[name=current()/../../../../../name]/interface/name",
+			want:    "/network-instance[name=current()/../../../../../name]/interface/name",
 			wantErr: false,
 		},
 	}
