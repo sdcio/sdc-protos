@@ -124,7 +124,7 @@ func (p *Path) NormalizedAbsPath(currentPath *Path) error {
 }
 
 // StripPathElemPrefixPath removes any YANG module prefix (e.g. "mod:elem") from the name of each path element in the path, as well as from the keys of each path element.
-func (p *Path) StripPathElemPrefixPath() {
+func (p *Path) StripPathElemPrefixPath() *Path {
 	for _, pe := range p.GetElem() {
 		if _, after, ok := strings.Cut(pe.Name, ":"); ok {
 			pe.Name = after
@@ -139,6 +139,7 @@ func (p *Path) StripPathElemPrefixPath() {
 			pe.Key[k] = stripPrefixFromValue(v)
 		}
 	}
+	return p
 }
 
 // stripPrefixFromValue removes any YANG module prefix (e.g. "mod:value") from
