@@ -123,31 +123,46 @@ func (p *Path) NormalizedAbsPath(currentPath *Path) error {
 	return nil
 }
 
+// StripPathElemPrefixPath removes any YANG module prefix (e.g. "mod:elem") from the name of each path element in the path, as well as from the keys of each path element.
 func (p *Path) StripPathElemPrefixPath() {
 	for _, pe := range p.GetElem() {
-		if i := strings.Index(pe.Name, ":"); i > 0 {
-			pe.Name = pe.Name[i+1:]
+		if _, after, ok := strings.Cut(pe.Name, ":"); ok {
+			pe.Name = after
 		}
 		// process keys
 		for k, v := range pe.Key {
 			// delete prefix from key name
-			if i := strings.Index(k, ":"); i > 0 {
+			if _, after, ok := strings.Cut(k, ":"); ok {
 				delete(pe.Key, k)
-				k = k[i+1:]
+				k = after
 			}
-			// delete prefix from key value
-			if strings.Contains(v, ":") {
-				kelems := strings.Split(v, "/")
-				for idx, kelem := range kelems {
-					if i := strings.Index(kelem, ":"); i > 0 {
-						kelems[idx] = kelem[i+1:]
-					}
-				}
-				v = strings.Join(kelems, "/")
-			}
-			pe.Key[k] = v
+			pe.Key[k] = stripPrefixFromValue(v)
 		}
 	}
+}
+
+// stripPrefixFromValue removes any YANG module prefix (e.g. "mod:value") from
+// each slash-separated segment of a key value.
+func stripPrefixFromValue(v string) string {
+	if !strings.Contains(v, ":") {
+		return v
+	}
+	var b strings.Builder
+	b.Grow(len(v))
+	for {
+		seg, rest, more := strings.Cut(v, "/")
+		if _, after, ok := strings.Cut(seg, ":"); ok {
+			b.WriteString(after)
+		} else {
+			b.WriteString(seg)
+		}
+		if !more {
+			break
+		}
+		b.WriteByte('/')
+		v = rest
+	}
+	return b.String()
 }
 
 func (p *Path) AbsToRelativePath(refPath *Path) (*Path, error) {

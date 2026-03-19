@@ -314,3 +314,176 @@ func TestPath_CopyPathAddKey(t *testing.T) {
 		})
 	}
 }
+
+func TestPath_StripPathElemPrefixPath(t *testing.T) {
+	tests := []struct {
+		name string
+		path *Path
+		want *Path
+	}{
+		{
+			name: "no prefixes",
+			path: &Path{
+				Elem: []*PathElem{
+					{Name: "interface", Key: map[string]string{"name": "ethernet-1/1"}},
+					{Name: "admin-state"},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{Name: "interface", Key: map[string]string{"name": "ethernet-1/1"}},
+					{Name: "admin-state"},
+				},
+			},
+		},
+		{
+			name: "prefix on elem name",
+			path: &Path{
+				Elem: []*PathElem{
+					{Name: "srl_nokia-interfaces:interface"},
+					{Name: "srl_nokia-interfaces:admin-state"},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{Name: "interface"},
+					{Name: "admin-state"},
+				},
+			},
+		},
+		{
+			name: "prefix on key name",
+			path: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "interface",
+						Key:  map[string]string{"mod:name": "ethernet-1/1"},
+					},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "interface",
+						Key:  map[string]string{"name": "ethernet-1/1"},
+					},
+				},
+			},
+		},
+		{
+			name: "prefix on simple key value",
+			path: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "interface",
+						Key:  map[string]string{"name": "mod:ethernet-1/1"},
+					},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "interface",
+						Key:  map[string]string{"name": "ethernet-1/1"},
+					},
+				},
+			},
+		},
+		{
+			name: "prefix on each slash-separated segment of key value",
+			path: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "route",
+						Key:  map[string]string{"prefix": "mod:a/mod:b/mod:c"},
+					},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "route",
+						Key:  map[string]string{"prefix": "a/b/c"},
+					},
+				},
+			},
+		},
+		{
+			name: "mixed: prefix on name, key name and key value",
+			path: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "mod:interface",
+						Key:  map[string]string{"mod:name": "mod:ethernet-1/1"},
+					},
+					{Name: "mod:admin-state"},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "interface",
+						Key:  map[string]string{"name": "ethernet-1/1"},
+					},
+					{Name: "admin-state"},
+				},
+			},
+		},
+		{
+			name: "multiple keys, only some prefixed",
+			path: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "entry",
+						Key: map[string]string{
+							"mod:key1": "mod:val1",
+							"key2":     "val2",
+						},
+					},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "entry",
+						Key: map[string]string{
+							"key1": "val1",
+							"key2": "val2",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "nil path elems (empty path)",
+			path: &Path{Elem: []*PathElem{}},
+			want: &Path{Elem: []*PathElem{}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.path.StripPathElemPrefixPath()
+			if len(tt.path.Elem) != len(tt.want.Elem) {
+				t.Fatalf("elem count = %d, want %d", len(tt.path.Elem), len(tt.want.Elem))
+			}
+			for i, gotPe := range tt.path.Elem {
+				wantPe := tt.want.Elem[i]
+				if gotPe.Name != wantPe.Name {
+					t.Errorf("elem[%d].Name = %q, want %q", i, gotPe.Name, wantPe.Name)
+				}
+				if len(gotPe.Key) != len(wantPe.Key) {
+					t.Errorf("elem[%d] key count = %d, want %d", i, len(gotPe.Key), len(wantPe.Key))
+					continue
+				}
+				for k, wantV := range wantPe.Key {
+					if gotV, ok := gotPe.Key[k]; !ok {
+						t.Errorf("elem[%d] missing key %q", i, k)
+					} else if gotV != wantV {
+						t.Errorf("elem[%d].Key[%q] = %q, want %q", i, k, gotV, wantV)
+					}
+				}
+			}
+		})
+	}
+}
