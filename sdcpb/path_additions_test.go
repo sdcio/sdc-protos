@@ -455,6 +455,44 @@ func TestPath_StripPathElemPrefixPath(t *testing.T) {
 			},
 		},
 		{
+			name: "do not strip ipv6 key value",
+			path: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "neighbor",
+						Key:  map[string]string{"address": "2001:db8::1"},
+					},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "neighbor",
+						Key:  map[string]string{"address": "2001:db8::1"},
+					},
+				},
+			},
+		},
+		{
+			name: "do not strip multi-colon slash-separated segments",
+			path: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "route",
+						Key:  map[string]string{"prefix": "mod:a/2001:db8::1/mod:c"},
+					},
+				},
+			},
+			want: &Path{
+				Elem: []*PathElem{
+					{
+						Name: "route",
+						Key:  map[string]string{"prefix": "a/2001:db8::1/c"},
+					},
+				},
+			},
+		},
+		{
 			name: "nil path elems (empty path)",
 			path: &Path{Elem: []*PathElem{}},
 			want: &Path{Elem: []*PathElem{}},

@@ -152,8 +152,15 @@ func stripPrefixFromValue(v string) string {
 	b.Grow(len(v))
 	for {
 		seg, rest, more := strings.Cut(v, "/")
-		if _, after, ok := strings.Cut(seg, ":"); ok {
-			b.WriteString(after)
+		// Strip only unambiguous module prefixes (single ":"), e.g. "mod:value".
+		// Keep segments with multiple colons (e.g. IPv6 addresses) intact.
+		if strings.Count(seg, ":") == 1 {
+			before, after, _ := strings.Cut(seg, ":")
+			if before != "" && after != "" {
+				b.WriteString(after)
+			} else {
+				b.WriteString(seg)
+			}
 		} else {
 			b.WriteString(seg)
 		}
