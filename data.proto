@@ -157,6 +157,18 @@ message GetIntentResponse {
     Intent proto = 3;
     bytes  blob  = 4;
   }
+  // name of the intent
+  string intent_name           = 5;
+  // intent priority
+  int32 priority               = 6;
+  // delete only from intended store
+  // basically keeping the config on the device but unmanaged
+  bool orphan                  = 7;
+  // non_revertive is set to true if changes in running config should not
+  // automatically be reverted.
+  bool non_revertive           = 8;
+  // explicit deletes that remain as part of the intent
+  repeated schema.Path deletes = 9;
 }
 
 message TransactionSetRequest {
