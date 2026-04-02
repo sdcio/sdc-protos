@@ -28,6 +28,7 @@ message Intent {
   // bool        deviation                 = 4;
   repeated schema.Path explicit_deletes = 5;
   bool                 non_revertive    = 6;
+  bool                 orphan           = 7;
 }
 
 message TreeElement {
