@@ -18,6 +18,7 @@ func (p *Path) AddPathElem(pe *PathElem) *Path {
 	return p
 }
 
+// CopyPathAddElem creates a child path by copying the parent path and adding a new element to the end of the path.
 func (p *Path) CopyPathAddElem(pe *PathElem) *Path {
 	child := &Path{
 		Origin:      p.Origin,
@@ -28,7 +29,26 @@ func (p *Path) CopyPathAddElem(pe *PathElem) *Path {
 		// limited capacity, so appending does not modify the parent's underlying array.
 		Elem: append(p.Elem[:len(p.Elem):len(p.Elem)], pe),
 	}
+	return child
+}
 
+// CopyPathAddKey creates a child path by copying the parent path and adding a key to the last element of the path.
+// It deep copies only the last element of the path to avoid modifying the parent's last element when adding the key.
+func (p *Path) CopyPathAddKey(keyName string, keyValue string) *Path {
+	child := &Path{
+		Origin:      p.Origin,
+		Target:      p.Target,
+		IsRootBased: p.IsRootBased,
+		Elem:        make([]*PathElem, len(p.Elem)),
+	}
+	// Copy references from parent to child for all but the last element
+	for i := 0; i < len(p.Elem)-1; i++ {
+		child.Elem[i] = p.Elem[i]
+	}
+	// Deep copy only the last element to avoid modifying the parent's last element
+	child.Elem[len(p.Elem)-1] = p.Elem[len(p.Elem)-1].DeepCopy()
+	// Add the key to the (now copied) last element
+	child.Elem[len(p.Elem)-1].AddKey(keyName, keyValue)
 	return child
 }
 
@@ -103,31 +123,54 @@ func (p *Path) NormalizedAbsPath(currentPath *Path) error {
 	return nil
 }
 
-func (p *Path) StripPathElemPrefixPath() {
+// StripPathElemPrefixPath removes any YANG module prefix (e.g. "mod:elem") from the name of each path element in the path, as well as from the keys of each path element.
+func (p *Path) StripPathElemPrefixPath() *Path {
 	for _, pe := range p.GetElem() {
-		if i := strings.Index(pe.Name, ":"); i > 0 {
-			pe.Name = pe.Name[i+1:]
+		if _, after, ok := strings.Cut(pe.Name, ":"); ok {
+			pe.Name = after
 		}
 		// process keys
 		for k, v := range pe.Key {
 			// delete prefix from key name
-			if i := strings.Index(k, ":"); i > 0 {
+			if _, after, ok := strings.Cut(k, ":"); ok {
 				delete(pe.Key, k)
-				k = k[i+1:]
+				k = after
 			}
-			// delete prefix from key value
-			if strings.Contains(v, ":") {
-				kelems := strings.Split(v, "/")
-				for idx, kelem := range kelems {
-					if i := strings.Index(kelem, ":"); i > 0 {
-						kelems[idx] = kelem[i+1:]
-					}
-				}
-				v = strings.Join(kelems, "/")
-			}
-			pe.Key[k] = v
+			pe.Key[k] = stripPrefixFromValue(v)
 		}
 	}
+	return p
+}
+
+// stripPrefixFromValue removes any YANG module prefix (e.g. "mod:value") from
+// each slash-separated segment of a key value.
+func stripPrefixFromValue(v string) string {
+	if !strings.Contains(v, ":") {
+		return v
+	}
+	var b strings.Builder
+	b.Grow(len(v))
+	for {
+		seg, rest, more := strings.Cut(v, "/")
+		// Strip only unambiguous module prefixes (single ":"), e.g. "mod:value".
+		// Keep segments with multiple colons (e.g. IPv6 addresses) intact.
+		if strings.Count(seg, ":") == 1 {
+			before, after, _ := strings.Cut(seg, ":")
+			if before != "" && after != "" {
+				b.WriteString(after)
+			} else {
+				b.WriteString(seg)
+			}
+		} else {
+			b.WriteString(seg)
+		}
+		if !more {
+			break
+		}
+		b.WriteByte('/')
+		v = rest
+	}
+	return b.String()
 }
 
 func (p *Path) AbsToRelativePath(refPath *Path) (*Path, error) {
@@ -538,4 +581,82 @@ func sortedVals(m map[string]string) []string {
 		vs = append(vs, m[k])
 	}
 	return vs
+}
+
+// IsParentPathOf returns true if the path is a subpath of the provided parent path. A path is considered a subpath if it has the same origin, target,
+// and root-based status as the parent, and its elements start with the parent's elements in the same order.
+func (p *Path) IsParentPathOf(child *Path) bool {
+	if p == nil || child == nil {
+		return false
+	}
+	if p.Origin != child.Origin || p.Target != child.Target || p.IsRootBased != child.IsRootBased {
+		return false
+	}
+	if len(p.Elem) > len(child.Elem) {
+		return false
+	}
+	for i, pe := range p.Elem {
+		if pe.Equal(child.Elem[i]) {
+			continue
+		}
+
+		// Special case: last element without keys matches on name only
+		isLastElem := i == len(p.Elem)-1
+		if isLastElem && len(pe.GetKey()) == 0 && child.Elem[i].GetName() == pe.GetName() {
+			return true
+		}
+
+		return false
+	}
+	return true
+}
+
+// SharesPrefix returns true if the current path and the filter path share a common prefix.
+// This is useful for tree traversal to determine if traversal should continue into a branch.
+// Returns false immediately (early exit) if paths diverge, enabling efficient tree pruning.
+// Returns true in these cases:
+//   - Current path is shorter than filter and matches so far (continue deeper)
+//   - Current path equals filter length and matches (at target)
+//   - Current path is longer than filter and matches filter prefix (within subtree)
+func (p *Path) SharesPrefix(filter *Path) bool {
+	if p == nil || filter == nil {
+		return false
+	}
+	if p.Origin != filter.Origin || p.Target != filter.Target || p.IsRootBased != filter.IsRootBased {
+		return false
+	}
+
+	// Compare elements up to the length of the shorter path
+	minLen := len(p.Elem)
+	if len(filter.Elem) < minLen {
+		minLen = len(filter.Elem)
+	}
+
+	for i := 0; i < minLen; i++ {
+		if p.Elem[i].Equal(filter.Elem[i]) {
+			continue
+		}
+
+		// Special case: if we're at the last element of the shorter path,
+		// and that element has no keys, match on name only
+		isLastOfCurrent := i == len(p.Elem)-1
+		isLastOfFilter := i == len(filter.Elem)-1
+
+		if isLastOfCurrent && len(p.Elem) <= len(filter.Elem) && len(p.Elem[i].GetKey()) == 0 {
+			if filter.Elem[i].GetName() == p.Elem[i].GetName() {
+				return true
+			}
+		}
+		if isLastOfFilter && len(filter.Elem) <= len(p.Elem) && len(filter.Elem[i].GetKey()) == 0 {
+			if p.Elem[i].GetName() == filter.Elem[i].GetName() {
+				return true
+			}
+		}
+
+		// Paths diverged - early exit
+		return false
+	}
+
+	// All common elements matched
+	return true
 }

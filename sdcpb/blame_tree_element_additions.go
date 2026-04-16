@@ -11,6 +11,22 @@ func NewBlameTreeElement(name string) *BlameTreeElement {
 	return &BlameTreeElement{Name: name}
 }
 
+// Copy creates a shallow copy of the BlameTreeElement, including all its fields but not its children.
+// This is useful for creating modified versions of an element without affecting the original.
+func (b *BlameTreeElement) Copy() *BlameTreeElement {
+	if b == nil {
+		return nil
+	}
+	newElem := &BlameTreeElement{
+		Name:           b.Name,
+		KeyName:        b.KeyName,
+		Value:          b.Value,
+		DeviationValue: b.DeviationValue,
+		Owner:          b.Owner,
+	}
+	return newElem
+}
+
 func (b *BlameTreeElement) SetValue(tv *TypedValue) *BlameTreeElement {
 	b.Value = tv
 	return b
@@ -24,6 +40,27 @@ func (b *BlameTreeElement) SetOwner(owner string) *BlameTreeElement {
 func (b *BlameTreeElement) SetDeviationValue(tv *TypedValue) *BlameTreeElement {
 	b.DeviationValue = tv
 	return b
+}
+
+func (b *BlameTreeElement) SetKeyName(keyName string) *BlameTreeElement {
+	b.KeyName = keyName
+	return b
+}
+
+func (b *BlameTreeElement) GetPath(parentPath *Path) *Path {
+	var result *Path = nil
+	// If nil is provided, we assume this is the root element and create a new path with "root" as the first element
+	if parentPath == nil {
+		parentPath = &Path{Elem: []*PathElem{}, IsRootBased: true}
+	}
+	// Create a copy of the parent path to avoid mutating it
+	if b.GetKeyName() == "" {
+		result = parentPath.CopyPathAddElem(NewPathElem(b.Name, nil))
+	} else {
+		result = parentPath.CopyPathAddKey(b.GetKeyName(), b.GetName())
+	}
+
+	return result
 }
 
 func (b *BlameTreeElement) CalculateMaxOwnerLength() int {
@@ -61,17 +98,19 @@ func (b *BlameTreeElement) StringIndent(sb *strings.Builder, prefix string, isLa
 
 	// Compose value string
 	value := ""
-	if b.GetValue() != nil {
-		value = fmt.Sprintf(" -> %s", b.GetValue().ToString())
-		icon = "🍃 "
-	}
-
 	deviated := "   "
 	deviated_value := ""
-	if b.IsDeviated() {
+
+	switch {
+	case b.GetKeyName() != "":
+		icon = fmt.Sprintf("🔑 %s=", b.GetKeyName())
+	case b.IsDeviated():
 		deviated = "(*)"
 		value = fmt.Sprintf(" -> %s", b.GetDeviationValue().ToString())
 		deviated_value = fmt.Sprintf(" [~> %s]", b.GetValue().ToString())
+	case b.GetValue() != nil:
+		value = fmt.Sprintf(" -> %s", b.GetValue().ToString())
+		icon = "🍃 "
 	}
 
 	// Write this node
@@ -93,12 +132,12 @@ func (b *BlameTreeElement) IsDeviated() bool {
 
 func (b *BlameTreeElement) ToString() string {
 	if b == nil {
-		return "<nil>"
+		return ""
 	}
 	sb := &strings.Builder{}
 	// Root node typically has no prefix or connector
 	b.StringIndent(sb, "", false, true, b.CalculateMaxOwnerLength())
-	return sb.String()
+	return strings.TrimSuffix(sb.String(), "\n")
 }
 
 func (b *BlameTreeElement) OwnerNormalized() string {
@@ -127,4 +166,75 @@ func (b *BlameTreeElement) SortedChildIterator() iter.Seq[*BlameTreeElement] {
 
 func (b *BlameTreeElement) ChildCount() int {
 	return len(b.Childs)
+}
+
+func (b *BlameTreeElement) StringXPath() string {
+	if b == nil {
+		return ""
+	}
+	sb := &strings.Builder{}
+
+	maxOwnerLength := b.CalculateMaxOwnerLength()
+
+	// Root node typically has no prefix or connector
+	b.WalkPath(&Path{Elem: nil, IsRootBased: true}, func(elem *BlameTreeElement, path *Path) {
+		if elem.StringXPathSingle(sb, path, maxOwnerLength) {
+			sb.WriteString("\n")
+		}
+	})
+	return strings.TrimSuffix(sb.String(), "\n")
+}
+
+func (b *BlameTreeElement) StringSliceXPath() []string {
+	if b == nil {
+		return []string{}
+	}
+	maxOwnerLength := b.CalculateMaxOwnerLength()
+
+	result := []string{}
+	sb := &strings.Builder{}
+
+	// Root node typically has no prefix or connector
+	b.WalkPath(&Path{Elem: nil, IsRootBased: true}, func(elem *BlameTreeElement, path *Path) {
+		mustAdd := elem.StringXPathSingle(sb, path, maxOwnerLength)
+		if mustAdd {
+			result = append(result, sb.String())
+		}
+		sb.Reset()
+	})
+	return result
+}
+
+func (b *BlameTreeElement) WalkPath(path *Path, fn func(*BlameTreeElement, *Path)) {
+	if b == nil {
+		return
+	}
+	fn(b, path)
+
+	for _, c := range b.GetChilds() {
+		var childPath *Path
+		if c.GetKeyName() != "" {
+			childPath = path.CopyPathAddKey(c.GetKeyName(), c.GetName())
+		} else {
+			childPath = path.CopyPathAddElem(NewPathElem(c.GetName(), nil))
+		}
+		c.WalkPath(childPath, fn)
+	}
+}
+
+func (b *BlameTreeElement) StringXPathSingle(sb *strings.Builder, path *Path, maxOwnerLength int) bool {
+	val := b.GetValue()
+	if val != nil {
+		deviationTxt := ""
+		deviated := " "
+		if b.IsDeviated() {
+			deviationTxt = fmt.Sprintf(" [~> %s]", val.ToString())
+			val = b.GetDeviationValue()
+			deviated = "D"
+		}
+
+		fmt.Fprintf(sb, "%s [ %-*s ] %s -> %s%s", deviated, maxOwnerLength, b.GetOwner(), path.ToXPath(false), val.ToString(), deviationTxt)
+		return true
+	}
+	return false
 }

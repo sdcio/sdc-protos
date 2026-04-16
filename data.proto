@@ -188,29 +188,31 @@ message TransactionSetRequest {
 
 message TransactionIntent {
   // intent name
-  string intent                = 1;
+  string intent                     = 1;
   // intent priority
-  int32 priority               = 2;
+  int32 priority                    = 2;
   // list of updates
-  repeated Update update       = 3;
+  repeated Update update            = 3;
   // delete indicator
-  bool delete                  = 4;
+  bool delete                       = 4;
   // delete only from intended store
   // basically keeping the config on the device but unmanaged
-  bool orphan                  = 5;
+  bool orphan                       = 5;
   // non_revertive is set to true if changes in running config should not
   // automatically be reverted.
-  bool non_revertive           = 6;
+  bool non_revertive                = 6;
   // indicates this intent was previously applied; for non_revertive intents,
   // changes in the running config on the device should remain untouched during
   // reconciliation when this non_revertive intent shows up for the first time
   // again
-  bool previously_applied      = 9;
+  bool previously_applied           = 9;
   // indicate that if the intent is marked for deletion but does not exist, no
   // error is returned
-  bool delete_ignore_no_exist  = 7;
+  bool delete_ignore_no_exist       = 7;
   // explicit deletes that remain as part of the intent
-  repeated schema.Path deletes = 8;
+  repeated schema.Path deletes      = 8;
+  // paths that are meant to be reverted
+  repeated schema.Path revert_paths = 10;
 }
 
 message TransactionSetResponse {
@@ -522,9 +524,11 @@ message BlameConfigRequest {
 message BlameConfigResponse { BlameTreeElement config_tree = 1; }
 
 message BlameTreeElement {
-  string                    name            = 1;
-  string                    owner           = 2;
-  TypedValue                value           = 3;
-  TypedValue                deviation_value = 4;
-  repeated BlameTreeElement childs          = 10;
+  string     name                    = 1;
+  string     owner                   = 2;
+  TypedValue value                   = 3;
+  TypedValue deviation_value         = 4;
+  // key_name is set in case the level in the tree is a key level of a list.
+  string                    key_name = 5;
+  repeated BlameTreeElement childs   = 10;
 }
