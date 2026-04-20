@@ -145,6 +145,7 @@ enum Format {
   Intent_Format_JSON_IETF = 1;
   Intent_Format_XML       = 2;
   Intent_Format_PROTO     = 3;
+  Intent_Format_XPATH     = 4;
 }
 
 message GetIntentResponse {
@@ -532,3 +533,10 @@ message BlameTreeElement {
   string                    key_name = 5;
   repeated BlameTreeElement childs   = 10;
 }
+
+message PathValue {
+  schema.Path path  = 1;
+  TypedValue  value = 2;
+}
+
+message PathValues { repeated PathValue path_values = 1; }
