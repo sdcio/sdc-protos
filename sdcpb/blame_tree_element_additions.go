@@ -108,6 +108,9 @@ func (b *BlameTreeElement) StringIndent(sb *strings.Builder, prefix string, isLa
 		deviated = "(*)"
 		value = fmt.Sprintf(" -> %s", b.GetDeviationValue().ToString())
 		deviated_value = fmt.Sprintf(" [~> %s]", b.GetValue().ToString())
+		if b.GetValue() != nil {
+			icon = "🍃 "
+		}
 	case b.GetValue() != nil:
 		value = fmt.Sprintf(" -> %s", b.GetValue().ToString())
 		icon = "🍃 "
