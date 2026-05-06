@@ -138,6 +138,19 @@ func writeValueContinuationLines(sb *strings.Builder, ownerSize int, prefix stri
 	}
 }
 
+func renderValueLine(sb *strings.Builder, linePrefix string, value string, wrapWidth int, ownerSize int, prefix string, isLast bool) {
+	if shouldRenderValueBlock(value) {
+		sb.WriteString(linePrefix)
+		sb.WriteString(" ->\n")
+		writeValueContinuationLines(sb, ownerSize, prefix, isLast, splitValueLines(value, wrapWidth))
+	} else {
+		sb.WriteString(linePrefix)
+		sb.WriteString(" -> ")
+		sb.WriteString(value)
+		sb.WriteString("\n")
+	}
+}
+
 func NewBlameTreeElement(name string) *BlameTreeElement {
 	return &BlameTreeElement{Name: name}
 }
@@ -230,52 +243,37 @@ func (b *BlameTreeElement) StringIndent(sb *strings.Builder, prefix string, isLa
 		nextPrefix = prefix + "    "
 	}
 
-	// Compose value string
+	// Determine presentation based on content
 	deviated := "   "
 
-	switch {
-	case b.GetKeyName() != "":
+	if b.GetKeyName() != "" {
 		icon = fmt.Sprintf("🔑 %s=", b.GetKeyName())
-	case b.IsDeviated():
+	} else if b.IsDeviated() {
 		deviated = "(*)"
-		value = fmt.Sprintf(" -> %s", b.GetDeviationValue().ToString())
-		deviated_value = fmt.Sprintf(" [~> %s]", b.GetValue().ToString())
 		if b.GetValue() != nil {
 			icon = "🍃 "
 		}
-	case b.GetValue() != nil:
+	} else if b.GetValue() != nil {
 		icon = "🍃 "
 	}
 
 	linePrefix := fmt.Sprintf("%*s%s │ %s%s%s%s", ownerSize, b.OwnerNormalized(), deviated, prefix, connector, icon, b.Name)
-	// Write this node and value payload.
-	if b.IsDeviated() {
-		newValue := b.GetDeviationValue().ToString()
-		oldValue := b.GetValue().ToString()
+
+	// Render values only if not a key
+	if b.GetKeyName() == "" {
 		wrapWidth := effectiveValueWrapWidth(ownerSize, prefix, isLast)
-		if shouldRenderValueBlock(newValue) || shouldRenderValueBlock(oldValue) {
-			sb.WriteString(linePrefix)
-			sb.WriteString(" ->")
-			sb.WriteString("\n")
-			writeValueContinuationLines(sb, ownerSize, prefix, isLast, splitValueLines(newValue, wrapWidth))
+
+		if b.IsDeviated() {
+			newValue := b.GetDeviationValue().ToString()
+			oldValue := b.GetValue().ToString()
+			renderValueLine(sb, linePrefix, newValue, wrapWidth, ownerSize, prefix, isLast)
 			sb.WriteString(fmt.Sprintf("%*s%s │ %s%s%s[~>]\n", ownerSize, continuationOwnerID, "   ", prefix, continuationBranch(isLast), blockValueIndent))
-			writeValueContinuationLines(sb, ownerSize, prefix, isLast, splitValueLines(oldValue, wrapWidth))
+			renderValueLine(sb, linePrefix, oldValue, wrapWidth, ownerSize, prefix, isLast)
+		} else if b.GetValue() != nil {
+			value := b.GetValue().ToString()
+			renderValueLine(sb, linePrefix, value, wrapWidth, ownerSize, prefix, isLast)
 		} else {
 			sb.WriteString(linePrefix)
-			sb.WriteString(fmt.Sprintf(" -> %s [~> %s]\n", newValue, oldValue))
-		}
-	} else if b.GetValue() != nil {
-		value := b.GetValue().ToString()
-		wrapWidth := effectiveValueWrapWidth(ownerSize, prefix, isLast)
-		if shouldRenderValueBlock(value) {
-			sb.WriteString(linePrefix)
-			sb.WriteString(" ->")
-			sb.WriteString("\n")
-			writeValueContinuationLines(sb, ownerSize, prefix, isLast, splitValueLines(value, wrapWidth))
-		} else {
-			sb.WriteString(linePrefix)
-			sb.WriteString(" -> ")
-			sb.WriteString(value)
 			sb.WriteString("\n")
 		}
 	} else {
