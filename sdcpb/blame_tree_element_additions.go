@@ -7,8 +7,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-
-	"golang.org/x/sys/unix"
 )
 
 const (
@@ -96,16 +94,6 @@ func resolveRenderLineWidth() int {
 		}
 	}
 	return defaultValueWrapWidth
-}
-
-func detectTerminalWidth() int {
-	for _, fd := range []uintptr{os.Stdout.Fd(), os.Stderr.Fd(), os.Stdin.Fd()} {
-		ws, err := unix.IoctlGetWinsize(int(fd), unix.TIOCGWINSZ)
-		if err == nil && ws != nil && ws.Col > 0 {
-			return int(ws.Col)
-		}
-	}
-	return 0
 }
 
 func effectiveValueWrapWidth(ownerSize int, prefix string, isLast bool) int {
