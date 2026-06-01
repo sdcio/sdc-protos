@@ -150,7 +150,7 @@ func ConvertEnumeration(value string, slt *SchemaLeafType) (*TypedValue, error) 
 }
 
 func ConvertBoolean(value string, _ *SchemaLeafType) (*TypedValue, error) {
-	bval, err := strconv.ParseBool(value)
+	bval, err := strconv.ParseBool(strings.TrimSpace(value))
 	if err != nil {
 		// if it is any other value, return error
 		return nil, err
@@ -592,7 +592,7 @@ func ConvertJsonValueToTv(d any, slt *SchemaLeafType) (*TypedValue, error) {
 		case bool:
 			b = d
 		case string:
-			b, err = strconv.ParseBool(d)
+			b, err = strconv.ParseBool(strings.TrimSpace(d))
 			if err != nil {
 				return nil, err
 			}

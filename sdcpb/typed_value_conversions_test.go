@@ -100,6 +100,43 @@ func TestValidateBitString(t *testing.T) {
 	}
 }
 
+func TestConvertBoolean(t *testing.T) {
+	bv := func(b bool) *TypedValue {
+		return &TypedValue{Value: &TypedValue_BoolVal{BoolVal: b}}
+	}
+	tests := []struct {
+		name    string
+		input   string
+		want    *TypedValue
+		wantErr bool
+	}{
+		{"lowercase true", "true", bv(true), false},
+		{"lowercase false", "false", bv(false), false},
+		{"Title True", "True", bv(true), false},
+		{"Title False", "False", bv(false), false},
+		{"UPPER TRUE", "TRUE", bv(true), false},
+		{"UPPER FALSE", "FALSE", bv(false), false},
+		{"numeric 1", "1", bv(true), false},
+		{"numeric 0", "0", bv(false), false},
+		{"leading/trailing whitespace", " true ", bv(true), false},
+		{"invalid", "yes", nil, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := ConvertBoolean(tc.input, nil)
+			if tc.wantErr && err == nil {
+				t.Fatalf("wanted error, got nil")
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("wanted no error, got %v", err)
+			}
+			if !proto.Equal(got, tc.want) {
+				t.Fatalf("ConvertBoolean(%q) = %v, want %v", tc.input, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestConvertBits(t *testing.T) {
 	slt := &SchemaLeafType{
 		Bits: []*Bit{{Name: "a", Position: 0}, {Name: "b", Position: 1}, {Name: "c", Position: 2}},
