@@ -133,11 +133,13 @@ message DeleteDataStoreResponse {}
 
 message GetIntentRequest {
   // datastore name
-  string datastore_name = 1;
+  string datastore_name  = 1;
   // intent name
-  string intent         = 2;
+  string intent          = 2;
   // format
-  Format format         = 3;
+  Format format          = 3;
+  // when true the render pipeline skips redaction and returns plaintext values
+  bool include_sensitive = 4;
 }
 
 enum Format {
@@ -189,31 +191,38 @@ message TransactionSetRequest {
 
 message TransactionIntent {
   // intent name
-  string intent                     = 1;
+  string intent                        = 1;
   // intent priority
-  int32 priority                    = 2;
+  int32 priority                       = 2;
   // list of updates
-  repeated Update update            = 3;
+  repeated Update update               = 3;
   // delete indicator
-  bool delete                       = 4;
+  bool delete                          = 4;
   // delete only from intended store
   // basically keeping the config on the device but unmanaged
-  bool orphan                       = 5;
+  bool orphan                          = 5;
   // non_revertive is set to true if changes in running config should not
   // automatically be reverted.
-  bool non_revertive                = 6;
+  bool non_revertive                   = 6;
   // indicates this intent was previously applied; for non_revertive intents,
   // changes in the running config on the device should remain untouched during
   // reconciliation when this non_revertive intent shows up for the first time
   // again
-  bool previously_applied           = 9;
+  bool previously_applied              = 9;
   // indicate that if the intent is marked for deletion but does not exist, no
   // error is returned
-  bool delete_ignore_no_exist       = 7;
+  bool delete_ignore_no_exist          = 7;
   // explicit deletes that remain as part of the intent
-  repeated schema.Path deletes      = 8;
+  repeated schema.Path deletes         = 8;
   // paths that are meant to be reverted
-  repeated schema.Path revert_paths = 10;
+  repeated schema.Path revert_paths    = 10;
+  // keyless XPath strings (e.g. /bgp/neighbors/auth-password) identifying
+  // leaves whose values must be redacted in northbound responses. Paths with
+  // key predicates are rejected by the server. Absence is treated as an empty
+  // slice (non-sensitive). A replace intent must re-declare all sensitive paths
+  // it considers sensitive; prior intents' slices are removed along with those
+  // intents.
+  repeated schema.Path sensitive_paths = 11;
 }
 
 message TransactionSetResponse {
@@ -518,8 +527,10 @@ message Intent {
 
 message BlameConfigRequest {
   // datastore name
-  string datastore_name   = 1;
-  bool   include_defaults = 5;
+  string datastore_name  = 1;
+  // when true the render pipeline skips redaction and returns plaintext values
+  bool include_sensitive = 2;
+  bool include_defaults  = 5;
 }
 
 message BlameConfigResponse { BlameTreeElement config_tree = 1; }
