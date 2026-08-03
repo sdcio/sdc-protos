@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+clang-format -i -style=file:clang-format.style options.proto
 clang-format -i -style=file:clang-format.style schema.proto
 clang-format -i -style=file:clang-format.style data.proto
 clang-format -i -style=file:clang-format.style tree_persist.proto
@@ -22,7 +23,7 @@ SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 SCHEMA_OUT_DIR=$SCRIPTPATH/sdcpb
 
 mkdir -p $SCHEMA_OUT_DIR
-protoc --go_out=paths=source_relative:$SCHEMA_OUT_DIR --go-grpc_out=paths=source_relative:$SCHEMA_OUT_DIR -I $SCRIPTPATH $SCRIPTPATH/schema.proto $SCRIPTPATH/data.proto
+protoc --go_out=paths=source_relative:$SCHEMA_OUT_DIR --go-grpc_out=paths=source_relative:$SCHEMA_OUT_DIR -I $SCRIPTPATH $SCRIPTPATH/options.proto $SCRIPTPATH/schema.proto $SCRIPTPATH/data.proto
 
 mkdir -p $SCRIPTPATH/tree_persist
 protoc --go_out=paths=source_relative:./tree_persist -I $SCRIPTPATH $SCRIPTPATH/tree_persist.proto
