@@ -1,0 +1,84 @@
+// Copyright 2026 Nokia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+import "schema.proto";
+
+package config_read;
+
+option go_package = "github.com/sdcio/sdc-protos/config_read;config_read";
+
+// ConfigReadService is a unary, localhost-bound read API over config-server's
+// Config (+ joined SensitiveConfig) resources, backed by the colocated
+// controller's existing watch-synced informer cache. It lets data-server
+// treat a config-server Config the same way it treats a locally persisted
+// Intent, without persisting a second copy of that data itself.
+service ConfigReadService {
+  // Get returns a single Config (joined with its SensitiveConfig, if any) by
+  // name. Returns a NotFound gRPC status if no such Config exists for the
+  // given target.
+  rpc Get(GetConfigRequest) returns (GetConfigResponse);
+  // List returns every Config (joined with its SensitiveConfig, if any)
+  // scoped to a single target.
+  rpc List(ListConfigRequest) returns (ListConfigResponse);
+}
+
+message GetConfigRequest {
+  // target this Config belongs to.
+  string target_namespace = 1;
+  string target_name      = 2;
+  // Config resource name.
+  string name             = 3;
+}
+
+message GetConfigResponse { ConfigEntry config = 1; }
+
+message ListConfigRequest {
+  // scopes the listing to Config resources for a single target, matching the
+  // TargetNamespaceKey/TargetNameKey labels config-server already indexes by.
+  string target_namespace = 1;
+  string target_name      = 2;
+}
+
+message ListConfigResponse { repeated ConfigEntry config = 1; }
+
+// ConfigEntry carries everything data-server's importer.ImportConfigAdapter
+// needs to treat a config-server Config as a real Intent: name, priority,
+// non-revertive/orphan flags, sensitive paths (joined from SensitiveConfig by
+// name), and the raw config payload.
+message ConfigEntry {
+  // Config resource name and namespace (joined via config.GetGVKNSN).
+  string name                          = 1;
+  string namespace                     = 7;
+  // non_revertive is the inverse of Config.Spec.Revertive (which defaults to
+  // true, i.e. revertive, when unset).
+  bool non_revertive                   = 2;
+  // orphan reflects Config.Spec.Lifecycle.DeletionPolicy == DeletionOrphan.
+  bool  orphan                         = 3;
+  int32 priority                       = 4;
+  // sensitive_paths is joined from the Config's SensitiveConfig (by name), if
+  // one exists. Keyless schema paths only.
+  repeated schema.Path sensitive_paths = 5;
+  // config is the raw path + JSON value payload from Config.Spec.Config.
+  repeated ConfigBlob config           = 6;
+}
+
+// ConfigBlob is a single raw path + JSON value entry from Config.Spec.Config.
+message ConfigBlob {
+  string path = 1;
+  // value is the raw JSON encoding of the ConfigBlob's runtime.RawExtension
+  // value.
+  bytes value = 2;
+}

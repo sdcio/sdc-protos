@@ -16,6 +16,7 @@
 clang-format -i -style=file:clang-format.style schema.proto
 clang-format -i -style=file:clang-format.style data.proto
 clang-format -i -style=file:clang-format.style tree_persist.proto
+clang-format -i -style=file:clang-format.style config_read.proto
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
@@ -26,3 +27,6 @@ protoc --go_out=paths=source_relative:$SCHEMA_OUT_DIR --go-grpc_out=paths=source
 
 mkdir -p $SCRIPTPATH/tree_persist
 protoc --go_out=paths=source_relative:./tree_persist -I $SCRIPTPATH $SCRIPTPATH/tree_persist.proto
+
+mkdir -p $SCRIPTPATH/config_read
+protoc --go_out=paths=source_relative:$SCRIPTPATH/config_read --go-grpc_out=paths=source_relative:$SCRIPTPATH/config_read -I $SCRIPTPATH $SCRIPTPATH/config_read.proto
