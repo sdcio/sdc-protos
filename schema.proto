@@ -155,33 +155,44 @@ message UploadSchemaResponse {}
 
 // sub messages
 message ContainerSchema {
-  string name                                = 1;
-  string description                         = 2;
-  string owner                               = 3;
-  string namespace                           = 4;
-  string prefix                              = 5;
+  string name                                  = 1;
+  string description                           = 2;
+  string owner                                 = 3;
+  string namespace                             = 4;
+  string prefix                                = 5;
 
-  repeated LeafSchema     keys               = 6;
-  repeated LeafSchema     fields             = 7;
-  repeated LeafListSchema leaflists          = 8;
-  repeated string         children           = 9;
-  repeated MandatoryChild mandatory_children = 10;
+  repeated LeafSchema     keys                 = 6;
+  repeated LeafSchema     fields               = 7;
+  repeated LeafListSchema leaflists            = 8;
+  repeated string         children             = 9;
+  repeated MandatoryChild mandatory_children   = 10;
 
-  repeated MustStatement must_statements     = 11;
+  repeated MustStatement must_statements       = 11;
 
-  string module_name                         = 12;
+  string module_name                           = 12;
 
-  uint64          max_elements               = 13;
-  uint64          min_elements               = 14;
-  repeated string childs_with_defaults       = 15;
+  uint64          max_elements                 = 13;
+  uint64          min_elements                 = 14;
+  repeated string childs_with_defaults         = 15;
 
-  bool            is_presence                = 20;
-  bool            is_state                   = 21;
-  bool            is_user_ordered            = 22;
-  repeated string if_feature                 = 23;
+  bool            is_presence                  = 20;
+  bool            is_state                     = 21;
+  bool            is_user_ordered              = 22;
+  repeated string if_feature                   = 23;
 
-  ChoiceInfo choice_info                     = 30;
+  // unique_constraints holds the YANG `unique` constraints (RFC 7950 § 7.8.3)
+  // for list nodes. Each entry represents one `unique` statement; the
+  // `elements` field carries the space-split descendant schema-node identifiers
+  // named in that statement (e.g. `unique "ip port"` → ["ip", "port"]).
+  repeated UniqueConstraint unique_constraints = 24;
+
+  ChoiceInfo choice_info                       = 30;
 }
+
+// UniqueConstraint represents one YANG `unique` statement on a list node.
+// Each element is a descendant schema-node identifier (RFC 7950 § 14);
+// together they form the tuple that must be unique across all list entries.
+message UniqueConstraint { repeated string elements = 1; }
 
 message MandatoryChild {
   string name     = 1;
