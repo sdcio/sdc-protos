@@ -421,10 +421,23 @@ message Target {
     NetconfOptions netconf_opts = 6;
   }
   // reflects the target connection status
-  TargetStatus status   = 9;
+  TargetStatus status          = 9;
   // if the status is NOT_CONNECTED, this fields might
   // more details about the reason.
-  string status_details = 10;
+  string status_details        = 10;
+  // optional NOS-specific southbound behaviour; defaults to
+  // DEVICE_PROFILE_GENERIC (no NOS-specific materialization).
+  DeviceProfile device_profile = 11;
+}
+
+// DeviceProfile selects NOS-specific southbound behaviour for a Target.
+enum DeviceProfile {
+  // Generic southbound driver — no NOS-specific materialization.
+  DEVICE_PROFILE_GENERIC      = 0;
+  // Enables IOS-XR-specific gNMI materialization (granular per-module
+  // JSON / JSON_IETF encoding). Accepted for NETCONF targets too, though
+  // no profile-specific shaping is applied there yet.
+  DEVICE_PROFILE_CISCO_IOS_XR = 1;
 }
 
 enum TargetStatus {
