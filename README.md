@@ -8,6 +8,43 @@ This repository is part of Schema Driven Configuration (SDC)
 
 The paradigm of schema-driven API approaches is gaining increasing popularity as it facilitates programmatic interaction with systems by both machines and humans. While OpenAPI schema stands out as a widely embraced system, there are other notable schema approaches like YANG, among others. This project endeavors to empower users with a declarative and idempotent method for seamless interaction with API systems, providing a robust foundation for effective system configuration."
 
+## Marking secrets
+
+Messages and fields that hold secrets are marked with annotations, so that consumers can redact them without keeping their own list of message and field names. The annotations are defined in [options.proto](options.proto) and applied in [data.proto](data.proto).
+
+### Which fields hold secrets
+
+| Message       | Field         | Secret |
+| ------------- | ------------- | ------ |
+| `Credentials` | `username`    | no     |
+| `Credentials` | `password`    | yes    |
+| `Credentials` | `token`       | yes    |
+| `TLS`         | `ca`          | no     |
+| `TLS`         | `cert`        | no     |
+| `TLS`         | `key`         | yes    |
+| `TLS`         | `skip_verify` | no     |
+
+### How the annotations work
+
+- `(sdc.options.secret)` on a message marks every field of that message, including fields added later.
+- `(sdc.options.secret_field)` marks a single field, or exempts a field of a marked message when set to `false`. It overrides the option on the enclosing message.
+
+`Credentials` is marked as a whole and exempts `username`, so a field added to it holds a secret unless it is exempted explicitly. `TLS` is marked field by field.
+
+### Reading the annotations
+
+The annotations describe the schema, they do not redact anything by themselves. In Go, neither these options nor the standard `debug_redact` option affect `String()`, `prototext` or `protojson` output, so a consumer that logs these messages has to read the annotations and mask the values itself:
+
+```go
+func isSecret(fd protoreflect.FieldDescriptor) bool {
+    if fo, ok := fd.Options().(*descriptorpb.FieldOptions); ok && proto.HasExtension(fo, sdcpb.E_SecretField) {
+        return proto.GetExtension(fo, sdcpb.E_SecretField).(bool)
+    }
+    mo, ok := fd.ContainingMessage().Options().(*descriptorpb.MessageOptions)
+    return ok && proto.GetExtension(mo, sdcpb.E_Secret).(bool)
+}
+```
+
 ## Join us
 
 Have questions, ideas, bug reports or just want to chat? Come join [our discord server](https://discord.com/channels/1240272304294985800/1311031796372344894).
