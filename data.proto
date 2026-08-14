@@ -16,6 +16,7 @@ syntax = "proto3";
 
 import "google/protobuf/any.proto";
 import "google/protobuf/empty.proto";
+import "options.proto";
 import "schema.proto";
 
 package data;
@@ -440,17 +441,19 @@ enum CommitCandidate {
 
 // TLS Config
 message TLS {
-  string ca          = 1;
-  string cert        = 2;
-  string key         = 3;
+  string ca   = 1;
+  string cert = 2;
+  string key  = 3 [ (sdc.options.secret_field) = true, debug_redact = true ];
   bool   skip_verify = 4;
 }
 
 // Target Credentials
 message Credentials {
-  string username = 1;
-  string password = 2;
-  string token    = 3;
+  option (sdc.options.secret) = true;
+
+  string username             = 1 [ (sdc.options.secret_field) = false ];
+  string password             = 2 [ debug_redact = true ];
+  string token                = 3 [ debug_redact = true ];
 }
 
 message Sync {
