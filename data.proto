@@ -438,6 +438,9 @@ enum DeviceProfile {
   // JSON / JSON_IETF encoding). Accepted for NETCONF targets too, though
   // no profile-specific shaping is applied there yet.
   DEVICE_PROFILE_CISCO_IOS_XR = 1;
+  // Enables SONiC-specific gNMI materialization for sonic_yang targets
+  // (parent-bound JSON_IETF Updates with module-prefix stripping).
+  DEVICE_PROFILE_SONIC        = 2;
 }
 
 enum TargetStatus {
