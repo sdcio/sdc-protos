@@ -33,20 +33,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ConfigReadService_Get_FullMethodName  = "/config_read.ConfigReadService/Get"
-	ConfigReadService_List_FullMethodName = "/config_read.ConfigReadService/List"
+	ConfigSnapshotService_Get_FullMethodName    = "/config_read.ConfigSnapshotService/Get"
+	ConfigSnapshotService_List_FullMethodName   = "/config_read.ConfigSnapshotService/List"
+	ConfigSnapshotService_Modify_FullMethodName = "/config_read.ConfigSnapshotService/Modify"
+	ConfigSnapshotService_Delete_FullMethodName = "/config_read.ConfigSnapshotService/Delete"
 )
 
-// ConfigReadServiceClient is the client API for ConfigReadService service.
+// ConfigSnapshotServiceClient is the client API for ConfigSnapshotService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ConfigReadService is a unary, localhost-bound read API over config-server's
-// Config (+ joined SensitiveConfig) resources, backed by the colocated
-// controller's existing watch-synced informer cache. It lets data-server
-// treat a config-server Config the same way it treats a locally persisted
-// Intent, without persisting a second copy of that data itself.
-type ConfigReadServiceClient interface {
+// ConfigSnapshotService is a unary, localhost-bound API over config-server's
+// TargetSnapshot — the last-applied membership and value for every Intent
+// applied to a target, backed by the colocated controller's existing
+// watch-synced informer cache for reads. It lets data-server treat a
+// config-server Config the same way it treats a locally persisted Intent,
+// without persisting a second copy of that data itself, and it lets
+// data-server report apply-time results back so TargetSnapshot.Spec.Configs
+// stays in sync at the moment southbound apply succeeds (not gated on
+// TransactionConfirm).
+type ConfigSnapshotServiceClient interface {
 	// Get returns a single Config (joined with its SensitiveConfig, if any) by
 	// name. Returns a NotFound gRPC status if no such Config exists for the
 	// given target.
@@ -54,46 +60,79 @@ type ConfigReadServiceClient interface {
 	// List returns every Config (joined with its SensitiveConfig, if any)
 	// scoped to a single target.
 	List(ctx context.Context, in *ListConfigRequest, opts ...grpc.CallOption) (*ListConfigResponse, error)
+	// Modify upserts the applied, encrypted payload for a single Intent into
+	// TargetSnapshot.Spec.Configs[name]. One call per intent — not batched.
+	// This carries the actual applied payload (same shape as ConfigEntry), not
+	// a re-read signal.
+	Modify(ctx context.Context, in *ModifyConfigRequest, opts ...grpc.CallOption) (*ModifyConfigResponse, error)
+	// Delete removes a single Intent's entry from
+	// TargetSnapshot.Spec.Configs[name]. One call per intent — not batched.
+	// Membership is a single map with no parallel deleted index or tombstone.
+	Delete(ctx context.Context, in *DeleteConfigRequest, opts ...grpc.CallOption) (*DeleteConfigResponse, error)
 }
 
-type configReadServiceClient struct {
+type configSnapshotServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewConfigReadServiceClient(cc grpc.ClientConnInterface) ConfigReadServiceClient {
-	return &configReadServiceClient{cc}
+func NewConfigSnapshotServiceClient(cc grpc.ClientConnInterface) ConfigSnapshotServiceClient {
+	return &configSnapshotServiceClient{cc}
 }
 
-func (c *configReadServiceClient) Get(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
+func (c *configSnapshotServiceClient) Get(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetConfigResponse)
-	err := c.cc.Invoke(ctx, ConfigReadService_Get_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ConfigSnapshotService_Get_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *configReadServiceClient) List(ctx context.Context, in *ListConfigRequest, opts ...grpc.CallOption) (*ListConfigResponse, error) {
+func (c *configSnapshotServiceClient) List(ctx context.Context, in *ListConfigRequest, opts ...grpc.CallOption) (*ListConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListConfigResponse)
-	err := c.cc.Invoke(ctx, ConfigReadService_List_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ConfigSnapshotService_List_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ConfigReadServiceServer is the server API for ConfigReadService service.
-// All implementations must embed UnimplementedConfigReadServiceServer
+func (c *configSnapshotServiceClient) Modify(ctx context.Context, in *ModifyConfigRequest, opts ...grpc.CallOption) (*ModifyConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ModifyConfigResponse)
+	err := c.cc.Invoke(ctx, ConfigSnapshotService_Modify_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configSnapshotServiceClient) Delete(ctx context.Context, in *DeleteConfigRequest, opts ...grpc.CallOption) (*DeleteConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteConfigResponse)
+	err := c.cc.Invoke(ctx, ConfigSnapshotService_Delete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ConfigSnapshotServiceServer is the server API for ConfigSnapshotService service.
+// All implementations must embed UnimplementedConfigSnapshotServiceServer
 // for forward compatibility.
 //
-// ConfigReadService is a unary, localhost-bound read API over config-server's
-// Config (+ joined SensitiveConfig) resources, backed by the colocated
-// controller's existing watch-synced informer cache. It lets data-server
-// treat a config-server Config the same way it treats a locally persisted
-// Intent, without persisting a second copy of that data itself.
-type ConfigReadServiceServer interface {
+// ConfigSnapshotService is a unary, localhost-bound API over config-server's
+// TargetSnapshot — the last-applied membership and value for every Intent
+// applied to a target, backed by the colocated controller's existing
+// watch-synced informer cache for reads. It lets data-server treat a
+// config-server Config the same way it treats a locally persisted Intent,
+// without persisting a second copy of that data itself, and it lets
+// data-server report apply-time results back so TargetSnapshot.Spec.Configs
+// stays in sync at the moment southbound apply succeeds (not gated on
+// TransactionConfirm).
+type ConfigSnapshotServiceServer interface {
 	// Get returns a single Config (joined with its SensitiveConfig, if any) by
 	// name. Returns a NotFound gRPC status if no such Config exists for the
 	// given target.
@@ -101,93 +140,152 @@ type ConfigReadServiceServer interface {
 	// List returns every Config (joined with its SensitiveConfig, if any)
 	// scoped to a single target.
 	List(context.Context, *ListConfigRequest) (*ListConfigResponse, error)
-	mustEmbedUnimplementedConfigReadServiceServer()
+	// Modify upserts the applied, encrypted payload for a single Intent into
+	// TargetSnapshot.Spec.Configs[name]. One call per intent — not batched.
+	// This carries the actual applied payload (same shape as ConfigEntry), not
+	// a re-read signal.
+	Modify(context.Context, *ModifyConfigRequest) (*ModifyConfigResponse, error)
+	// Delete removes a single Intent's entry from
+	// TargetSnapshot.Spec.Configs[name]. One call per intent — not batched.
+	// Membership is a single map with no parallel deleted index or tombstone.
+	Delete(context.Context, *DeleteConfigRequest) (*DeleteConfigResponse, error)
+	mustEmbedUnimplementedConfigSnapshotServiceServer()
 }
 
-// UnimplementedConfigReadServiceServer must be embedded to have
+// UnimplementedConfigSnapshotServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedConfigReadServiceServer struct{}
+type UnimplementedConfigSnapshotServiceServer struct{}
 
-func (UnimplementedConfigReadServiceServer) Get(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
+func (UnimplementedConfigSnapshotServiceServer) Get(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedConfigReadServiceServer) List(context.Context, *ListConfigRequest) (*ListConfigResponse, error) {
+func (UnimplementedConfigSnapshotServiceServer) List(context.Context, *ListConfigRequest) (*ListConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
-func (UnimplementedConfigReadServiceServer) mustEmbedUnimplementedConfigReadServiceServer() {}
-func (UnimplementedConfigReadServiceServer) testEmbeddedByValue()                           {}
+func (UnimplementedConfigSnapshotServiceServer) Modify(context.Context, *ModifyConfigRequest) (*ModifyConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Modify not implemented")
+}
+func (UnimplementedConfigSnapshotServiceServer) Delete(context.Context, *DeleteConfigRequest) (*DeleteConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedConfigSnapshotServiceServer) mustEmbedUnimplementedConfigSnapshotServiceServer() {}
+func (UnimplementedConfigSnapshotServiceServer) testEmbeddedByValue()                               {}
 
-// UnsafeConfigReadServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ConfigReadServiceServer will
+// UnsafeConfigSnapshotServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ConfigSnapshotServiceServer will
 // result in compilation errors.
-type UnsafeConfigReadServiceServer interface {
-	mustEmbedUnimplementedConfigReadServiceServer()
+type UnsafeConfigSnapshotServiceServer interface {
+	mustEmbedUnimplementedConfigSnapshotServiceServer()
 }
 
-func RegisterConfigReadServiceServer(s grpc.ServiceRegistrar, srv ConfigReadServiceServer) {
-	// If the following call pancis, it indicates UnimplementedConfigReadServiceServer was
+func RegisterConfigSnapshotServiceServer(s grpc.ServiceRegistrar, srv ConfigSnapshotServiceServer) {
+	// If the following call pancis, it indicates UnimplementedConfigSnapshotServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&ConfigReadService_ServiceDesc, srv)
+	s.RegisterService(&ConfigSnapshotService_ServiceDesc, srv)
 }
 
-func _ConfigReadService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ConfigSnapshotService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ConfigReadServiceServer).Get(ctx, in)
+		return srv.(ConfigSnapshotServiceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ConfigReadService_Get_FullMethodName,
+		FullMethod: ConfigSnapshotService_Get_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConfigReadServiceServer).Get(ctx, req.(*GetConfigRequest))
+		return srv.(ConfigSnapshotServiceServer).Get(ctx, req.(*GetConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ConfigReadService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ConfigSnapshotService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ConfigReadServiceServer).List(ctx, in)
+		return srv.(ConfigSnapshotServiceServer).List(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ConfigReadService_List_FullMethodName,
+		FullMethod: ConfigSnapshotService_List_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConfigReadServiceServer).List(ctx, req.(*ListConfigRequest))
+		return srv.(ConfigSnapshotServiceServer).List(ctx, req.(*ListConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ConfigReadService_ServiceDesc is the grpc.ServiceDesc for ConfigReadService service.
+func _ConfigSnapshotService_Modify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ModifyConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigSnapshotServiceServer).Modify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigSnapshotService_Modify_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigSnapshotServiceServer).Modify(ctx, req.(*ModifyConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ConfigSnapshotService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigSnapshotServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ConfigSnapshotService_Delete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigSnapshotServiceServer).Delete(ctx, req.(*DeleteConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ConfigSnapshotService_ServiceDesc is the grpc.ServiceDesc for ConfigSnapshotService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ConfigReadService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "config_read.ConfigReadService",
-	HandlerType: (*ConfigReadServiceServer)(nil),
+var ConfigSnapshotService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "config_read.ConfigSnapshotService",
+	HandlerType: (*ConfigSnapshotServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Get",
-			Handler:    _ConfigReadService_Get_Handler,
+			Handler:    _ConfigSnapshotService_Get_Handler,
 		},
 		{
 			MethodName: "List",
-			Handler:    _ConfigReadService_List_Handler,
+			Handler:    _ConfigSnapshotService_List_Handler,
+		},
+		{
+			MethodName: "Modify",
+			Handler:    _ConfigSnapshotService_Modify_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _ConfigSnapshotService_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
