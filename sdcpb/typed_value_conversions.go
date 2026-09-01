@@ -466,6 +466,34 @@ func ConvertUnion(value string, slts []*SchemaLeafType) (*TypedValue, error) {
 	return nil, fmt.Errorf("no union type fit the provided value %q", value)
 }
 
+// TVFromStringWithType converts v to a TypedValue and also returns the effective
+// SchemaLeafType that was used for the conversion. For non-union types the input
+// schemaType is returned unchanged. For union types the first matching branch is
+// returned; nested unions are recursed so the returned type is always a leaf
+// (non-union) branch.
+func TVFromStringWithType(schemaType *SchemaLeafType, v string, ts uint64) (*TypedValue, *SchemaLeafType, error) {
+	if schemaType == nil {
+		return nil, nil, fmt.Errorf("schemaType cannot be nil")
+	}
+	if schemaType.Type != "union" {
+		tv, err := TVFromString(schemaType, v, ts)
+		if err != nil {
+			return nil, nil, err
+		}
+		return tv, schemaType, nil
+	}
+	// union: iterate branches, recurse to handle nested unions
+	for _, branch := range schemaType.UnionTypes {
+		tv, matched, err := TVFromStringWithType(branch, v, 0)
+		if err != nil {
+			continue
+		}
+		tv.Timestamp = ts
+		return tv, matched, nil
+	}
+	return nil, nil, fmt.Errorf("no union type fit the provided value %q", v)
+}
+
 func validateBitString(value string, allowed []*Bit) bool {
 	//split string to individual bits
 	bits := strings.Fields(value)
@@ -636,4 +664,27 @@ func ConvertJsonValueToTv(d any, slt *SchemaLeafType) (*TypedValue, error) {
 	}
 
 	return nil, fmt.Errorf("error no case matched when converting from json to TV: %v, %v", d, slt)
+}
+
+// ConvertJsonValueToTvWithType converts d to a TypedValue and also returns the
+// effective SchemaLeafType that was used for the conversion. For non-union types
+// the input slt is returned unchanged. For union types the first matching branch
+// is returned; nested unions are recursed so the returned type is always a leaf
+// (non-union) branch.
+func ConvertJsonValueToTvWithType(d any, slt *SchemaLeafType) (*TypedValue, *SchemaLeafType, error) {
+	if slt.Type != "union" {
+		tv, err := ConvertJsonValueToTv(d, slt)
+		if err != nil {
+			return nil, nil, err
+		}
+		return tv, slt, nil
+	}
+	// union: iterate branches, recurse to handle nested unions
+	for _, branch := range slt.GetUnionTypes() {
+		tv, matched, err := ConvertJsonValueToTvWithType(d, branch)
+		if err == nil {
+			return tv, matched, nil
+		}
+	}
+	return nil, nil, fmt.Errorf("invalid value %v for union type: %v", d, slt.GetUnionTypes())
 }
