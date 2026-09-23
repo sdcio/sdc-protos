@@ -20,12 +20,16 @@ package config_read;
 
 option go_package = "github.com/sdcio/sdc-protos/config_read;config_read";
 
-// ConfigReadService is a unary, localhost-bound read API over config-server's
-// Config (+ joined SensitiveConfig) resources, backed by the colocated
-// controller's existing watch-synced informer cache. It lets data-server
-// treat a config-server Config the same way it treats a locally persisted
-// Intent, without persisting a second copy of that data itself.
-service ConfigReadService {
+// ConfigSnapshotService is a unary, localhost-bound API over config-server's
+// TargetSnapshot — the last-applied membership and value for every Intent
+// applied to a target, backed by the colocated controller's existing
+// watch-synced informer cache for reads. It lets data-server treat a
+// config-server Config the same way it treats a locally persisted Intent,
+// without persisting a second copy of that data itself, and it lets
+// data-server report apply-time results back so TargetSnapshot.Spec.Configs
+// stays in sync at the moment southbound apply succeeds (not gated on
+// TransactionConfirm).
+service ConfigSnapshotService {
   // Get returns a single Config (joined with its SensitiveConfig, if any) by
   // name. Returns a NotFound gRPC status if no such Config exists for the
   // given target.
@@ -33,6 +37,15 @@ service ConfigReadService {
   // List returns every Config (joined with its SensitiveConfig, if any)
   // scoped to a single target.
   rpc List(ListConfigRequest) returns (ListConfigResponse);
+  // Modify upserts the applied, encrypted payload for a single Intent into
+  // TargetSnapshot.Spec.Configs[name]. One call per intent — not batched.
+  // This carries the actual applied payload (same shape as ConfigEntry), not
+  // a re-read signal.
+  rpc Modify(ModifyConfigRequest) returns (ModifyConfigResponse);
+  // Delete removes a single Intent's entry from
+  // TargetSnapshot.Spec.Configs[name]. One call per intent — not batched.
+  // Membership is a single map with no parallel deleted index or tombstone.
+  rpc Delete(DeleteConfigRequest) returns (DeleteConfigResponse);
 }
 
 message GetConfigRequest {
@@ -53,6 +66,27 @@ message ListConfigRequest {
 }
 
 message ListConfigResponse { repeated ConfigEntry config = 1; }
+
+message ModifyConfigRequest {
+  // target this Config belongs to.
+  string target_namespace = 1;
+  string target_name      = 2;
+  // config is the full applied payload to upsert into
+  // TargetSnapshot.Spec.Configs[config.name].
+  ConfigEntry config      = 3;
+}
+
+message ModifyConfigResponse {}
+
+message DeleteConfigRequest {
+  // target this Config belongs to.
+  string target_namespace = 1;
+  string target_name      = 2;
+  // Config resource name to remove from TargetSnapshot.Spec.Configs.
+  string name             = 3;
+}
+
+message DeleteConfigResponse {}
 
 // ConfigEntry carries everything data-server's importer.ImportConfigAdapter
 // needs to treat a config-server Config as a real Intent: name, priority,
