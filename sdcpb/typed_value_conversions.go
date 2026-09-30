@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
 	"strings"
 
-	logf "github.com/sdcio/logger"
 	"github.com/sdcio/sdc-protos/utils"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
@@ -356,18 +354,9 @@ func ConvertString(value string, lst *SchemaLeafType) (*TypedValue, error) {
 	// If the type has multiple "pattern" statements, the expressions are
 	// ANDed together, i.e., all such expressions have to match.
 	for _, sp := range lst.Patterns {
-		// The set of metacharacters is not the same between XML schema and perl/python/go REs
-		// the set of metacharacters for XML is: .\?*+{}()[] (https://www.w3.org/TR/xmlschema-2/#dt-metac)
-		// the set of metacharacters defined in go is: \.+*?()|[]{}^$ (go/libexec/src/regexp/regexp.go:714)
-		// we need therefore to escape some values
-		// TODO check about '^'
-
-		escaped := xmlRegexConvert(sp.Pattern)
-		re, err := regexp.Compile(escaped)
+		re, err := compiledPattern(sp.Pattern)
 		if err != nil {
-			//TODO: Do we want to stop here?
-			logf.DefaultLogger.Error(err, "unable to compile regex", "pattern", sp.Pattern)
-			return nil, fmt.Errorf("unable to compile regex: %w", err)
+			return nil, err
 		}
 		match := re.MatchString(value)
 		// if it is a match and not inverted
