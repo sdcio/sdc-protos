@@ -42,6 +42,24 @@ func TestToStringMultilineLeafValueKeepsTreePrefix(t *testing.T) {
 	}
 }
 
+func TestToStringInlineDeviatedScalar(t *testing.T) {
+	root := NewBlameTreeElement("root")
+	root.AddChild(
+		NewBlameTreeElement("bandwidth").
+			SetOwner("demo.initial-config").
+			SetValue(&TypedValue{Value: &TypedValue_StringVal{StringVal: "5000"}}).
+			SetDeviationValue(&TypedValue{Value: &TypedValue_StringVal{StringVal: "100"}}),
+	)
+
+	out := root.ToString()
+	if !strings.Contains(out, "bandwidth -> 100 [~> 5000]") {
+		t.Fatalf("expected inline deviated scalar on one line, got:\n%s", out)
+	}
+	if strings.Count(out, "bandwidth") != 1 {
+		t.Fatalf("expected a single bandwidth line, got:\n%s", out)
+	}
+}
+
 func TestToStringMultilineDeviatedValueKeepsTreePrefix(t *testing.T) {
 	root := NewBlameTreeElement("root")
 	root.AddChild(

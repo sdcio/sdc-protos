@@ -139,6 +139,20 @@ func renderValueLine(sb *strings.Builder, linePrefix string, value string, wrapW
 	}
 }
 
+func shouldRenderDeviatedInline(running, intended string) bool {
+	return !shouldRenderValueBlock(running) && !shouldRenderValueBlock(intended)
+}
+
+func renderDeviatedIntendedContinuation(sb *strings.Builder, intended string, wrapWidth int, ownerSize int, prefix string, isLast bool) {
+	if shouldRenderValueBlock(intended) {
+		writeValueContinuationLines(sb, ownerSize, prefix, isLast, splitValueLines(intended, wrapWidth))
+		return
+	}
+	sb.WriteString(fmt.Sprintf("%*s%s │ %s%s%s", ownerSize, continuationOwnerID, "   ", prefix, continuationBranch(isLast), blockValueIndent))
+	sb.WriteString(intended)
+	sb.WriteString("\n")
+}
+
 func NewBlameTreeElement(name string) *BlameTreeElement {
 	return &BlameTreeElement{Name: name}
 }
@@ -252,11 +266,20 @@ func (b *BlameTreeElement) StringIndent(sb *strings.Builder, prefix string, isLa
 		wrapWidth := effectiveValueWrapWidth(ownerSize, prefix, isLast)
 
 		if b.IsDeviated() {
-			newValue := b.GetDeviationValue().ToString()
-			oldValue := b.GetValue().ToString()
-			renderValueLine(sb, linePrefix, newValue, wrapWidth, ownerSize, prefix, isLast)
-			sb.WriteString(fmt.Sprintf("%*s%s │ %s%s%s[~>]\n", ownerSize, continuationOwnerID, "   ", prefix, continuationBranch(isLast), blockValueIndent))
-			renderValueLine(sb, linePrefix, oldValue, wrapWidth, ownerSize, prefix, isLast)
+			running := b.GetDeviationValue().ToString()
+			intended := b.GetValue().ToString()
+			if shouldRenderDeviatedInline(running, intended) {
+				sb.WriteString(linePrefix)
+				sb.WriteString(" -> ")
+				sb.WriteString(running)
+				sb.WriteString(" [~> ")
+				sb.WriteString(intended)
+				sb.WriteString("]\n")
+			} else {
+				renderValueLine(sb, linePrefix, running, wrapWidth, ownerSize, prefix, isLast)
+				sb.WriteString(fmt.Sprintf("%*s%s │ %s%s%s[~>]\n", ownerSize, continuationOwnerID, "   ", prefix, continuationBranch(isLast), blockValueIndent))
+				renderDeviatedIntendedContinuation(sb, intended, wrapWidth, ownerSize, prefix, isLast)
+			}
 		} else if b.GetValue() != nil {
 			value := b.GetValue().ToString()
 			renderValueLine(sb, linePrefix, value, wrapWidth, ownerSize, prefix, isLast)
