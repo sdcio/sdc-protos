@@ -208,6 +208,7 @@ message LeafListSchema {
   bool            is_state               = 21;
   bool            is_user_ordered        = 22;
   repeated string if_feature             = 23;
+  bool            sensitive              = 24;
 }
 
 message LeafSchema {
@@ -228,6 +229,7 @@ message LeafSchema {
   string default                         = 12;
 
   bool            is_state               = 21;
+  bool            sensitive              = 22;
   repeated string if_feature             = 23;
 
   repeated string reference              = 25;

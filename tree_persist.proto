@@ -29,6 +29,10 @@ message Intent {
   repeated schema.Path explicit_deletes = 5;
   bool                 non_revertive    = 6;
   bool                 orphan           = 7;
+  // key-pruned schema paths whose values must be redacted in northbound
+  // responses. Absence (existing intents without this field) is treated as
+  // non-sensitive — no migration required.
+  repeated schema.Path sensitive_paths  = 8;
 }
 
 message TreeElement {
