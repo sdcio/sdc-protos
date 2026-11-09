@@ -3264,14 +3264,6 @@ func (x *Credentials) GetToken() string {
 
 type Sync struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// if true, all received notifications
-	// are validated agains the schema
-	Validate bool `protobuf:"varint,1,opt,name=validate,proto3" json:"validate,omitempty"`
-	// number of notification to buffer while writing
-	// to cache
-	Buffer int64 `protobuf:"varint,2,opt,name=buffer,proto3" json:"buffer,omitempty"`
-	// number of cache writers
-	WriteWorkers int64 `protobuf:"varint,3,opt,name=write_workers,json=writeWorkers,proto3" json:"write_workers,omitempty"`
 	// list of sync strategies
 	Config        []*SyncConfig `protobuf:"bytes,4,rep,name=config,proto3" json:"config,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -3306,27 +3298,6 @@ func (x *Sync) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Sync.ProtoReflect.Descriptor instead.
 func (*Sync) Descriptor() ([]byte, []int) {
 	return file_data_proto_rawDescGZIP(), []int{40}
-}
-
-func (x *Sync) GetValidate() bool {
-	if x != nil {
-		return x.Validate
-	}
-	return false
-}
-
-func (x *Sync) GetBuffer() int64 {
-	if x != nil {
-		return x.Buffer
-	}
-	return 0
-}
-
-func (x *Sync) GetWriteWorkers() int64 {
-	if x != nil {
-		return x.WriteWorkers
-	}
-	return 0
 }
 
 func (x *Sync) GetConfig() []*SyncConfig {
@@ -4104,12 +4075,9 @@ const file_data_proto_rawDesc = "" +
 	"\vCredentials\x12 \n" +
 	"\busername\x18\x01 \x01(\tB\x04\xb0\x86\x19\x00R\busername\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\x80\x01\x01R\bpassword\x12\x19\n" +
-	"\x05token\x18\x03 \x01(\tB\x03\x80\x01\x01R\x05token:\x04\xa8\x86\x19\x01\"\x89\x01\n" +
-	"\x04Sync\x12\x1a\n" +
-	"\bvalidate\x18\x01 \x01(\bR\bvalidate\x12\x16\n" +
-	"\x06buffer\x18\x02 \x01(\x03R\x06buffer\x12#\n" +
-	"\rwrite_workers\x18\x03 \x01(\x03R\fwriteWorkers\x12(\n" +
-	"\x06config\x18\x04 \x03(\v2\x10.data.SyncConfigR\x06config\"\x9a\x01\n" +
+	"\x05token\x18\x03 \x01(\tB\x03\x80\x01\x01R\x05token:\x04\xa8\x86\x19\x01\"c\n" +
+	"\x04Sync\x12(\n" +
+	"\x06config\x18\x04 \x03(\v2\x10.data.SyncConfigR\x06configJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\bvalidateR\x06bufferR\rwrite_workers\"\x9a\x01\n" +
 	"\n" +
 	"SyncConfig\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12$\n" +
