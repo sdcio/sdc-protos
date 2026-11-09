@@ -457,14 +457,9 @@ message Credentials {
 }
 
 message Sync {
-  // if true, all received notifications
-  // are validated agains the schema
-  bool validate              = 1;
-  // number of notification to buffer while writing
-  // to cache
-  int64 buffer               = 2;
-  // number of cache writers
-  int64 write_workers        = 3;
+  reserved 1, 2, 3;
+  reserved "validate", "buffer", "write_workers";
+
   // list of sync strategies
   repeated SyncConfig config = 4;
 }
