@@ -115,8 +115,12 @@ func toStringSorted(tvs []*TypedValue) []string {
 	return result
 }
 
-// ToString converts the TypedValue to the real, non proto string
+// ToString converts the TypedValue to the real, non proto string.
+// A nil receiver yields the empty string.
 func (tv *TypedValue) ToString() string {
+	if tv == nil {
+		return ""
+	}
 	switch tv.Value.(type) {
 	case *TypedValue_AnyVal:
 		return string(tv.GetAnyVal().GetValue()) // questionable...
