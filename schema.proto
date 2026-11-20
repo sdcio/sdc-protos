@@ -208,6 +208,8 @@ message LeafListSchema {
   bool            is_state               = 21;
   bool            is_user_ordered        = 22;
   repeated string if_feature             = 23;
+
+  bool mutate_on_write                   = 26;
 }
 
 message LeafSchema {
@@ -231,6 +233,7 @@ message LeafSchema {
   repeated string if_feature             = 23;
 
   repeated string reference              = 25;
+  bool            mutate_on_write        = 26;
 }
 
 message SchemaLeafType {
